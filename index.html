@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webcam.js Demo</title>
+    <style>
+        #my_camera, #results img {
+            border: 1px solid black;
+            margin-top: 10px;
+        }
+        button, select {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #outputImage {
+            display: none; /* Hide the processed image display */
+        }
+    </style>
+</head>
+<body>
+    <!-- Webcam Stream Container -->
+    <center><p style="font-size: 30px;">Welcome to the World of Portrait</p></center>
+    <center><div id="my_camera" style="width:400px; height:400px;"></div></center>
+    
+    <!-- Capture Button -->
+    <center><button onclick="take_snapshot()">Take Snapshot</button></center>
+    
+    <!-- Option Selector and Redirect Button -->
+    <center>
+        <select id="page_selector" style="display:none;">
+            <option value="1">1.html</option>
+            <option value="2">2.html</option>
+            <option value="3">3.html</option>
+            <option value="4">4.html</option>
+            <option value="5">5.html</option>
+            <option value="6">6.html</option>
+            <option value="7">7.html</option>
+            <option value="8">8.html</option>
+            <option value="9">9.html</option>
+            <option value="10">10.html</option>
+        </select>
+        <button id="save_button" style="display:none;" onclick="processImage()">Use the image</button>
+    </center>
+    
+    <!-- Captured Image Display -->
+    <center><div id="results"></div></center>
+    
+    <!-- Processed Image Display (Hidden) -->
+    <img id="outputImage" alt="Processed Image">
+
+    <!-- Include Webcam.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js"></script>
+    <script>
+        const API_KEY = 'zzvEWSfyVVa5nx75nHVvG1mD'; // Replace with your API key for background removal
+
+        // Configure the webcam
+        Webcam.set({
+            width: 400,
+            height: 400,
+            image_format: 'jpeg',
+            jpeg_quality: 90
+        });
+
+        // Attach the webcam stream to the HTML element
+        Webcam.attach('#my_camera');
+
+        // Function to capture the image
+        function take_snapshot() {
+            Webcam.snap(function(data_uri) {
+                // Display the captured image in the results div
+                document.getElementById('results').innerHTML = 
+                    '<img id="captured_image" src="'+data_uri+'"/>';
+
+                // Show the save button and page selector
+                document.getElementById('save_button').style.display = 'block';
+                document.getElementById('page_selector').style.display = 'block';
+            });
+        }
+
+        // Function to process the captured image
+        function processImage() {
+            const image = document.getElementById('captured_image').src;
+            removeBackgroundAndAddBlackBackground(image);
+        }
+
+        function removeBackgroundAndAddBlackBackground(imageUrl) {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous'; // Handle CORS
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                // Draw black background
+                ctx.fillStyle = 'White';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw the image on top
+                ctx.drawImage(img, 0, 0);
+
+                // Process image to remove background
+                processImageOnServer(canvas.toDataURL());
+            };
+            img.src = imageUrl;
+        }
+
+        function processImageOnServer(imageDataUrl) {
+            const formData = new FormData();
+            formData.append('image_file', dataURLtoBlob(imageDataUrl));
+
+            fetch('https://api.remove.bg/v1.0/removebg', {
+                method: 'POST',
+                headers: {
+                    'X-Api-Key': API_KEY
+                },
+                body: formData
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                // Add black background to the image with removed background
+                const img = new Image();
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+
+                    // Draw black background
+                    ctx.fillStyle = 'White';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // Draw the processed image on top
+                    ctx.drawImage(img, 0, 0);
+
+                    // Set the output image source to the canvas data URL
+                    const finalImageUrl = canvas.toDataURL();
+                    const outputImage = document.getElementById('outputImage');
+                    if (outputImage) {
+                        outputImage.src = finalImageUrl;
+                    }
+
+                    // Redirect to the selected page with the final image URL
+                    redirect_with_image(finalImageUrl);
+                };
+                img.src = url;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function dataURLtoBlob(dataURL) {
+            const [header, data] = dataURL.split(',');
+            const mime = header.split(':')[1].split(';')[0];
+            const binary = atob(data);
+            const array = [];
+            for (let i = 0; i < binary.length; i++) {
+                array.push(binary.charCodeAt(i));
+            }
+            return new Blob([new Uint8Array(array)], { type: mime });
+        }
+
+        function redirect_with_image(finalImageUrl) {
+            // Get the selected page
+            const selectedPage = document.getElementById('page_selector').value + '.html';
+
+            // Redirect to the selected page with the final image URL as a query parameter
+            window.location.href = selectedPage + '?image=' + encodeURIComponent(finalImageUrl);
+        }
+
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3x3 Dice Mosaic</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+</head>
+<body>
+    <script>
+        let numDice = 10;
+        let rotationX = [];
+        let rotationY = [];
+        let rotationSpeed = 0.1;
+        let targetFaces = [
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+        6, 6, 6, 6, 5, 5, 6, 6, 6, 6,
+        6, 6, 6, 6, 2, 1, 6, 6, 6, 6, 
+        6, 6, 6, 2, 2, 1, 6, 6, 6, 6, 
+        6, 6, 6, 4, 3, 2, 6, 6, 6, 6, 
+        6, 6, 6, 6, 3, 3, 6, 6, 6, 6, 
+        6, 6, 6, 6, 2, 2, 5, 5, 6, 6, 
+        6, 6, 5, 4, 2, 3, 3, 2, 5, 6, 
+        6, 3, 3, 2, 2, 2, 3, 3, 2, 6
+        ];
+
+        function setup() {
+            createCanvas(3000, 3000, WEBGL);
+            for (let i = 0; i < numDice; i++) {
+                rotationX[i] = [];
+                rotationY[i] = [];
+                for (let j = 0; j < numDice; j++) {
+                    rotationX[i][j] = random(TWO_PI);
+                    rotationY[i][j] = random(TWO_PI);
+                }
+            }
+        }
+
+        function draw() {
+            background(255);
+            directionalLight(250, 250, 250, 0, 0, -1);
+            ambientLight(150);
+
+            let spacing = 100;
+            let startPosition = 0;
+
+            for (let i = 0; i < numDice; i++) {
+                for (let j = 0; j < numDice; j++) {
+                    push();
+                    translate(i * spacing + startPosition, j * spacing + startPosition, 0);
+                    rotateDice(i, j);
+                    drawDie();
+                    pop();
+                }
+            }
+        }
+
+        function rotateDice(i, j) {
+            let index = j * numDice + i; // Calculate the index for the 1D array
+            let face = targetFaces[index];
+            let targetX = faceToAngleX(face);
+            let targetY = faceToAngleY(face);
+
+            rotationX[i][j] = lerp(rotationX[i][j], targetX, rotationSpeed);
+            rotationY[i][j] = lerp(rotationY[i][j], targetY, rotationSpeed);
+
+            rotateY(rotationY[i][j]);
+            rotateX(rotationX[i][j]);
+        }
+
+        function faceToAngleX(face) {
+            switch (face) {
+                case 1: return HALF_PI;
+                case 2: return 0;
+                case 3: return 0;
+                case 4: return PI;
+                case 5: return 0;
+                case 6: return -HALF_PI;
+            }
+        }
+
+        function faceToAngleY(face) {
+            switch (face) {
+                case 1: return 0;
+                case 2: return -HALF_PI;
+                case 3: return 0;
+                case 4: return HALF_PI;
+                case 5: return PI;
+                case 6: return 0;
+            }
+        }
+
+        function drawDie() {
+            fill(0);
+            box(100);
+            fill(255);
+            noStroke();
+            drawFace(0, -50, 0, 6); // top face
+            drawFace(50, 0, 0, 2);  // right face
+            drawFace(-50, 0, 0, 4); // left face
+            drawFace(0, 50, 0, 1);  // front face
+            drawFace(0, 0, 50, 3);  // back face
+            drawFace(0, 0, -50, 5); // bottom face
+        }
+
+        function drawFace(x, y, z, face) {
+            push();
+            translate(x, y, z);
+            if (x != 0) rotateY(HALF_PI);
+            if (y != 0) rotateX(HALF_PI);
+            switch (face) {
+                case 1:
+                    drawDot(0, 0);
+                    break;
+                case 2:
+                    drawDot(-20, -20);
+                    drawDot(20, 20);
+                    break;
+                case 3:
+                    drawDot(-20, -20);
+                    drawDot(0, 0);
+                    drawDot(20, 20);
+                    break;
+                case 4:
+                    drawDot(-20, -20);
+                    drawDot(20, -20);
+                    drawDot(-20, 20);
+                    drawDot(20, 20);
+                    break;
+                case 5:
+                    drawDot(-20, -20);
+                    drawDot(20, -20);
+                    drawDot(0, 0);
+                    drawDot(-20, 20);
+                    drawDot(20, 20);
+                    break;
+                case 6:
+                    drawDot(-20, -20);
+                    drawDot(20, -20);
+                    drawDot(-20, 0);
+                    drawDot(20, 0);
+                    drawDot(-20, 20);
+                    drawDot(20, 20);
+                    break;
+            }
+            pop();
+        }
+
+        function drawDot(x, y) {
+            push();
+            translate(x, y, 1);
+            sphere(7);
+            pop();
+        }
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Mosaic Animation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+</head>
+<style>
+</style>
+<body>
+    <script>
+        let diceValues = [];
+        let matrixSize = 10;
+        let rotationX = [];
+        let rotationY = [];
+        let rotationSpeed = 0.5;
+
+        function setup() {
+            const params = new URLSearchParams(window.location.search);
+            matrixSize = parseInt(params.get('matrixSize')) || 10;
+            diceValues = JSON.parse(params.get('diceValues')) || [];
+            createCanvas(matrixSize*100,matrixSize*100, WEBGL);
+            // Initialize rotations based on diceValues
+            for (let i = 0; i < matrixSize; i++) {
+                rotationX[i] = [];
+                rotationY[i] = [];
+                for (let j = 0; j < matrixSize; j++) {
+                    rotationX[i][j] = random(TWO_PI);
+                    rotationY[i][j] = random(TWO_PI);
+                }
+            }
+        }
+
+        function draw() {
+            background(255);
+            // directionalLight(250, 250, 250, 0, 0, -1);
+            // ambientLight(150);
+
+            let spacing = 50;
+            let startPosition = 0;
+
+            for (let i = 0; i < matrixSize; i++) {
+                for (let j = 0; j < matrixSize; j++) {
+                    push();
+                    translate(i * spacing + startPosition, j * spacing + startPosition, 0);
+                    rotateDice(i, j);
+                    drawDie();
+                    pop();
+                }
+            }
+        }
+
+        function rotateDice(i, j) {
+            let index = j * matrixSize + i; // Calculate the index for the 1D array
+            let face = diceValues[index];
+            let targetX = faceToAngleX(face);
+            let targetY = faceToAngleY(face);
+
+            rotationX[i][j] = lerp(rotationX[i][j], targetX, rotationSpeed);
+            rotationY[i][j] = lerp(rotationY[i][j], targetY, rotationSpeed);
+
+            rotateY(rotationY[i][j]);
+            rotateX(rotationX[i][j]);
+        }
+
+        function faceToAngleX(face) {
+            switch (face) {
+                case 1: return HALF_PI;
+                case 2: return 0;
+                case 3: return 0;
+                case 4: return PI;
+                case 5: return 0;
+                case 6: return -HALF_PI;
+            }
+        }
+
+        function faceToAngleY(face) {
+            switch (face) {
+                case 1: return 0;
+                case 2: return -HALF_PI;
+                case 3: return 0;
+                case 4: return HALF_PI;
+                case 5: return PI;
+                case 6: return 0;
+            }
+        }
+
+        function drawDie() {
+            fill(0);
+            box(50);
+            fill(255);
+            noStroke();
+            drawFace(0, -25, 0, 6); // top face
+            drawFace(25, 0, 0, 2);  // right face
+            drawFace(-25, 0, 0, 4); // left face
+            drawFace(0, 25, 0, 1);  // front face
+            drawFace(0, 0, 25, 3);  // back face
+            drawFace(0, 0, -25, 5); // bottom face
+        }
+
+        function drawFace(x, y, z, face) {
+            push();
+            translate(x, y, z);
+            if (x != 0) rotateY(HALF_PI);
+            if (y != 0) rotateX(HALF_PI);
+            switch (face) {
+                case 1:
+                    drawDot(0, 0);
+                    break;
+                case 2:
+                    drawDot(-20, -20);
+                    drawDot(20, 20);
+                    break;
+                case 3:
+                    drawDot(-20, -20);
+                    drawDot(0, 0);
+                    drawDot(20, 20);
+                    break;
+                case 4:
+                    drawDot(-20, -20);
+                    drawDot(20, -20);
+                    drawDot(-20, 20);
+                    drawDot(20, 20);
+                    break;
+                case 5:
+                    drawDot(-20, -20);
+                    drawDot(20, -20);
+                    drawDot(0, 0);
+                    drawDot(-20, 20);
+                    drawDot(20, 20);
+                    break;
+                case 6:
+                    drawDot(-20, -20);
+                    drawDot(20, -20);
+                    drawDot(-20, 0);
+                    drawDot(20, 0);
+                    drawDot(-20, 20);
+                    drawDot(20, 20);
+                    break;
+            }
+            pop();
+        }
+
+        function drawDot(x, y) {
+            push();
+            translate(x, y, 1);
+            sphere(5);
+            pop();
+        }
+    </script>
+</body>
+</html>
