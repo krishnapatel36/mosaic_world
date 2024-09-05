@@ -3,9 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Cube Art Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="number"] {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        canvas {
+            margin-top: 20px;
+            border: 2px solid #000;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        #display_image{
+            border: 2px solid #000;
+        }
+    </style>
 </head>
 <body>
-    hii no error
+    <div class="container">
+        <h1>Cube Art Generator</h1>
+        <center><div id="display_image"></div></center>
+        <label for="cubeAmount">Number of Cubes:</label>
+        <input type="number" id="cubeAmount" value="1000">
+        
+        <button id="generateButton">Generate Cube Art</button>
+        <br>
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <script>
+        const generateButton = document.getElementById('generateButton');
+        const imageInput = document.getElementById('imageInput');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        imageUrl = localStorage.getItem('finalImageUrl')
+        if (imageUrl) {
+            document.getElementById('display_image').innerHTML = 
+                '<img id="image_element" src="'+imageUrl+'"/>';
+        } else {
+            document.getElementById('display_image').innerHTML = 
+                '<p>No image found.</p>';
+        }
+        generateButton.addEventListener('click', () => {
+            const amount = parseInt(document.getElementById('cubeAmount').value);
+
+            const img = new Image();
+            img.src = imageUrl
+
+            img.onload = () => {
+                const cubeArt = new CubeArt(amount, img);
+                cubeArt.animate();
+            }
+        });
+
+        class CubeArt {
+            constructor(amount, img) {
+                this.amount = amount;
+                this.img = img;
+                this.colours = {
+                    "white": [255, 255, 255],
+                    "yellow": [248, 254, 84],
+                    "red": [203, 42, 29],
+                    "orange": [240, 144, 60],
+                    "blue": [53, 90, 167],
+                    "green": [103, 221, 67],
+                };
+                this.spacing = 2;
+                this.colorAnimationSpeed = 100; // Time in milliseconds between color updates
+            }
+
+            animate() {
+                const { width, height } = this.img;
+                const s = Math.sqrt(this.amount / (width * height));
+                const w2 = Math.floor(width * s);
+                const h2 = Math.floor(height * s);
+                const cubieDim = { width: w2 * 3, height: h2 * 3 };
+                const cubieSize = Math.min(width / cubieDim.width, height / cubieDim.height);
+
+                canvas.width = width + (this.spacing * (cubieDim.width - 1));
+                canvas.height = height + (this.spacing * (cubieDim.height - 1));
+
+                ctx.drawImage(this.img, 0, 0, width, height);
+                const imgData = ctx.getImageData(0, 0, width, height);
+                const brightnessValues = this.getBrightnessValues(imgData, cubieDim, cubieSize);
+
+                const cText = this.setColours(brightnessValues);
+                this.drawRandomColors(cubieDim, cubieSize);
+
+                // Start the animation
+                this.animateTransition(cText, cubieDim, cubieSize);
+            }
+
+            getBrightnessValues(imgData, cubieDim, cubieSize) {
+                const brightVals = [];
+                let minBright = 255;
+                let maxBright = 0;
+
+                for (let j = 0; j < cubieDim.height; j++) {
+                    const row = [];
+                    for (let i = 0; i < cubieDim.width; i++) {
+                        const x = Math.min(Math.floor(i * cubieSize), imgData.width - 1);
+                        const y = Math.min(Math.floor(j * cubieSize), imgData.height - 1);
+                        const index = (y * imgData.width + x) * 4;
+                        const r = imgData.data[index];
+                        const g = imgData.data[index + 1];
+                        const b = imgData.data[index + 2];
+                        const brightness = (r * 0.21) + (g * 0.71) + (b * 0.08);
+
+                        if (brightness < minBright) minBright = brightness;
+                        if (brightness > maxBright) maxBright = brightness;
+
+                        row.push(brightness);
+                    }
+                    brightVals.push(row);
+                }
+                this.minBright = minBright;
+                this.maxBright = maxBright;
+                return brightVals;
+            }
+
+            setColours(brightVals) {
+                const cText = [];
+                const segSize = (this.maxBright - this.minBright) / 6;
+
+                for (let j = 0; j < brightVals.length; j++) {
+                    const row = [];
+                    for (let i = 0; i < brightVals[j].length; i++) {
+                        const b = brightVals[j][i];
+                        let val;
+                        if (b <= segSize) val = "B";
+                        else if (b > segSize && b <= segSize * 2) val = "G";
+                        else if (b > segSize * 2 && b <= segSize * 3) val = "R";
+                        else if (b > segSize * 3 && b <= segSize * 4) val = "O";
+                        else if (b > segSize * 4 && b <= segSize * 5) val = "Y";
+                        else val = "W";
+                        row.push(val);
+                    }
+                    cText.push(row);
+                }
+                return cText;
+            }
+
+            drawRandomColors(cubieDim, cubieSize) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (let j = 0; j < cubieDim.height; j++) {
+                    for (let i = 0; i < cubieDim.width; i++) {
+                        const x0 = i * (cubieSize + this.spacing);
+                        const y0 = j * (cubieSize + this.spacing);
+                        const x1 = x0 + cubieSize;
+                        const y1 = y0 + cubieSize;
+
+                        const randomColor = this.getRandomColor();
+                        ctx.fillStyle = `rgb(${randomColor[0]}, ${randomColor[1]}, ${randomColor[2]})`;
+                        ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+                    }
+                }
+
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+
+                for (let row = 0; row < cubieDim.height; row += 3) {
+                    for (let col = 0; col < cubieDim.width; col += 3) {
+                        const topFaceX0 = col * (cubieSize + this.spacing);
+                        const topFaceY0 = row * (cubieSize + this.spacing);
+                        const topFaceX1 = topFaceX0 + (cubieSize + this.spacing) * 3 - this.spacing;
+                        const topFaceY1 = topFaceY0 + (cubieSize + this.spacing) * 3 - this.spacing;
+
+                        ctx.strokeRect(topFaceX0, topFaceY0, topFaceX1 - topFaceX0, topFaceY1 - topFaceY0);
+                    }
+                }
+            }
+
+            getRandomColor() {
+                const colors = Object.values(this.colours);
+                const randomIndex = Math.floor(Math.random() * colors.length);
+                return colors[randomIndex];
+            }
+
+            animateTransition(cText, cubieDim, cubieSize) {
+                const startTime = performance.now();
+                const duration = 10000; // Duration of the animation in milliseconds (10 seconds)
+                const totalRows = cubieDim.height;
+                let lastColorUpdate = startTime;
+
+                const step = (currentTime) => {
+                    const elapsedTime = currentTime - startTime;
+                    const progress = Math.min(elapsedTime / duration, 1);
+                    const visibleRows = Math.ceil(progress * totalRows);
+
+                    // Draw the background with random colors, updating at the specified speed
+                    if (currentTime - lastColorUpdate > this.colorAnimationSpeed) {
+                        this.drawRandomColors(cubieDim, cubieSize);
+                        lastColorUpdate = currentTime;
+                    }
+
+                    // Reveal correct colors for the visible rows
+                    for (let row = 0; row < visibleRows; row++) {
+                        for (let col = 0; col < cubieDim.width; col++) {
+                            const x0 = col * (cubieSize + this.spacing);
+                            const y0 = row * (cubieSize + this.spacing);
+                            const x1 = x0 + cubieSize;
+                            const y1 = y0 + cubieSize;
+
+                            const color = this.getColor(cText[row][col]);
+                            ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                            ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+                        }
+                    }
+
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        // Final draw to ensure last state is rendered
+                        this.drawFinal(cText, cubieDim, cubieSize);
+                    }
+                };
+
+                requestAnimationFrame(step);
+            }
+
+            getColor(char) {
+                switch (char) {
+                    case "W": return this.colours["white"];
+                    case "Y": return this.colours["yellow"];
+                    case "O": return this.colours["orange"];
+                    case "R": return this.colours["red"];
+                    case "G": return this.colours["green"];
+                    default: return this.colours["blue"];
+                }
+            }
+
+            drawFinal(cText, cubieDim, cubieSize) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                for (let j = 0; j < cText.length; j++) {
+                    for (let i = 0; i < cText[j].length; i++) {
+                        const x0 = i * (cubieSize + this.spacing);
+                        const y0 = j * (cubieSize + this.spacing);
+                        const x1 = x0 + cubieSize;
+                        const y1 = y0 + cubieSize;
+
+                        const color = this.getColor(cText[j][i]);
+                        ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                        ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+                    }
+                }
+
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+
+                for (let row = 0; row < cubieDim.height; row += 3) {
+                    for (let col = 0; col < cubieDim.width; col += 3) {
+                        const topFaceX0 = col * (cubieSize + this.spacing);
+                        const topFaceY0 = row * (cubieSize + this.spacing);
+                        const topFaceX1 = topFaceX0 + (cubieSize + this.spacing) * 3 - this.spacing;
+                        const topFaceY1 = topFaceY0 + (cubieSize + this.spacing) * 3 - this.spacing;
+
+                        ctx.strokeRect(topFaceX0, topFaceY0, topFaceX1 - topFaceX0, topFaceY1 - topFaceY0);
+                    }
+                }
+            }
+        }
+   </script>
 </body>
 </html>

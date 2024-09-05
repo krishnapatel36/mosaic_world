@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Circle Animation</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /* height: 100vh; */
+      margin-top: 100px;
+      background-color: black;
+    }
+
+    #grid-container {
+      display: grid;
+      /* gap: -20px; */
+    }
+
+    .circle {
+      width: 100px;
+      height: 100px;
+      border: 5px solid white;
+      border-radius: 100%;
+      background-color: white;
+      transition: width 0.1s, height 0.1s;
+    }
+  </style>
+</head>
+<body>
+  <div id="grid-container">
+    <!-- Circles will be dynamically generated here -->
+  </div>
+
+  <script>
+    // Retrieve matrixSize and targetDiameters from localStorage
+    const matrixSize = parseInt(localStorage.getItem('matrixSize')) || 2; // Default to 2 if not found
+    const targetDiameters = JSON.parse(localStorage.getItem('matrix')) || [[10, 30], [40, 20]]; // Default if not found
+
+    const maxDiameter = 1; // Maximum diameter in pixels (scaled for visibility)
+    const updateInterval = 20000; // Interval to update diameter values for smooth transition (milliseconds)
+    const animationDuration = 50000; // Duration of the animation in milliseconds
+
+    let diameters = Array.from({ length: matrixSize }, () => Array(matrixSize).fill(0));
+    let startTime = Date.now();
+    let stopTransition = false;
+
+    // Create the grid of circles
+    const gridContainer = document.getElementById('grid-container');
+    gridContainer.style.gridTemplateColumns = `repeat(${matrixSize}, 100px)`;
+    gridContainer.style.gridTemplateRows = `repeat(${matrixSize}, 100px)`;
+
+    for (let i = 0; i < matrixSize; i++) {
+      for (let j = 0; j < matrixSize; j++) {
+        const circle = document.createElement('div');
+        circle.classList.add('circle');
+        gridContainer.appendChild(circle);
+      }
+    }
+
+    const circles = document.querySelectorAll('.circle');
+
+    function updateDiameters() {
+      for (let i = 0; i < matrixSize; i++) {
+        for (let j = 0; j < matrixSize; j++) {
+          if (!stopTransition) {
+            diameters[i][j] = 20;
+          } else {
+            // Smoothly transition to the target diameter
+            diameters[i][j] = lerp(diameters[i][j], targetDiameters[i][j]*16, 0.1);
+          }
+        }
+      }
+    }
+
+    function lerp(start, end, amt) {
+      return (1 - amt) * start + amt * end;
+    }
+
+    function drawCircles() {
+      circles.forEach((circle, index) => {
+        const row = Math.floor(index / matrixSize);
+        const col = index % matrixSize;
+        const diameter = diameters[row][col];
+        circle.style.width = `${diameter}px`;
+        circle.style.height = `${diameter}px`;
+      });
+    }
+
+    function animate() {
+      const currentTime = Date.now();
+      const elapsedTime = currentTime - startTime;
+
+      if (elapsedTime < animationDuration) {
+        if (elapsedTime % updateInterval < 100) {
+          updateDiameters();
+        }
+      } else {
+        stopTransition = true;
+        updateDiameters();
+      }
+
+      drawCircles();
+
+      if (stopTransition && allDiametersCloseToTarget()) {
+        return; // Stop the animation
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function allDiametersCloseToTarget() {
+      for (let i = 0; i < matrixSize; i++) {
+        for (let j = 0; j < matrixSize; j++) {
+          if (Math.abs(diameters[i][j] - targetDiameters[i][j]) > 0.1) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    // Start the animation
+    animate();
+  </script>
+</body>
+</html>
