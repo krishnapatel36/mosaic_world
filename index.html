@@ -1,347 +1,180 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webcam.js Demo</title>
-    <style>
-        #my_camera, #results img {
-            border: 1px solid black;
-            margin-top: 10px;
-        }
-        button, select {
-            margin-top: 10px;
-            padding: 10px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        #outputImage {
-            display: none; /* Hide the processed image display */
-        }
-    </style>
-</head>
-<body>
-    <center><p style="font-size: 30px;">Welcome to the World of Portrait</p></center>
-    <center><div id="my_camera" style="width:400px; height:400px;"></div></center>
-    
-    <center><button onclick="take_snapshot()">Take Snapshot</button></center>
-    
-    <center>
-        <select id="page_selector" style="display:none;">
-            <option value="1">1.html</option>
-            <option value="2">2.html</option>
-            <option value="3">3.html</option>
-            <option value="4">4.html</option>
-            <option value="5">5.html</option>
-            <option value="6">6.html</option>
-            <option value="7">7.html</option>
-            <option value="8">8.html</option>
-            <option value="9">9.html</option>
-            <option value="10">10.html</option>
-        </select>
-        <button id="save_button" style="display:none;" onclick="processImage()">Use the image</button>
-    </center>
-    
-    <center><div id="results"></div></center>
-    
-    <img id="outputImage" alt="Processed Image">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js"></script>
-    <script>
-        const API_KEY = 'hEym97DknYjNdVSTWA5P7fhq'; // Replace with your API key for background removal
-
-        // Configure the webcam
-        Webcam.set({
-            width: 400,
-            height: 400,
-            image_format: 'jpeg',
-            jpeg_quality: 90
-        });
-
-        // Attach the webcam stream to the HTML element
-        Webcam.attach('#my_camera');
-
-        // Function to capture the image
-        function take_snapshot() {
-            Webcam.snap(function(data_uri) {
-                // Display the captured image in the results div
-                document.getElementById('results').innerHTML = 
-                    '<img id="captured_image" src="'+data_uri+'"/>';
-
-                // Show the save button and page selector
-                document.getElementById('save_button').style.display = 'block';
-                document.getElementById('page_selector').style.display = 'block';
-            });
-        }
-
-        // Function to process the captured image
-        function processImage() {
-            const image = document.getElementById('captured_image').src;
-            removeBackgroundAndAddBlackBackground(image);
-        }
-
-        function removeBackgroundAndAddBlackBackground(imageUrl) {
-            const img = new Image();
-            img.crossOrigin = 'Anonymous'; // Handle CORS
-            img.onload = function () {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.width;
-                canvas.height = img.height;
-
-                // Draw black background
-                ctx.fillStyle = 'White';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // Draw the image on top
-                ctx.drawImage(img, 0, 0);
-
-                // Process image to remove background
-                processImageOnServer(canvas.toDataURL());
-            };
-            img.src = imageUrl;
-        }
-
-        function processImageOnServer(imageDataUrl) {
-            const formData = new FormData();
-            formData.append('image_file', dataURLtoBlob(imageDataUrl));
-
-            fetch('https://api.remove.bg/v1.0/removebg', {
-                method: 'POST',
-                headers: {
-                    'X-Api-Key': API_KEY
-                },
-                body: formData
-            })
-            .then(response => response.blob())
-            .then(blob => {
-                const url = URL.createObjectURL(blob);
-                // Add black background to the image with removed background
-                const img = new Image();
-                img.onload = function () {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-
-                    // Draw black background
-                    ctx.fillStyle = 'White';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    // Draw the processed image on top
-                    ctx.drawImage(img, 0, 0);
-
-                    // Set the output image source to the canvas data URL
-                    const finalImageUrl = canvas.toDataURL();
-                    const outputImage = document.getElementById('outputImage');
-                    if (outputImage) {
-                        outputImage.src = finalImageUrl;
-                    }
-
-                    // Redirect to the selected page with the final image URL
-                    redirect_with_image(finalImageUrl);
-                };
-                img.src = url;
-            })
-            .catch(error => console.error('Error:', error));
-        }
-
-        function dataURLtoBlob(dataURL) {
-            const [header, data] = dataURL.split(',');
-            const mime = header.split(':')[1].split(';')[0];
-            const binary = atob(data);
-            const array = [];
-            for (let i = 0; i < binary.length; i++) {
-                array.push(binary.charCodeAt(i));
-            }
-            return new Blob([new Uint8Array(array)], { type: mime });
-        }
-
-        function redirect_with_image(finalImageUrl) {
-            // Get the selected page
-            const selectedPage = document.getElementById('page_selector').value + '.html';
-
-            // Redirect to the selected page with the final image URL as a query parameter
-            window.location.href = selectedPage + '?image=' + encodeURIComponent(finalImageUrl);
-        }
-    </script>   
-</body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webcam.js Demo</title>
-    <style>
-        #my_camera, #results img {
-            border: 1px solid black;
-            margin-top: 10px;
-        }
-        button, select {
-            margin-top: 10px;
-            padding: 10px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        #outputImage {
-            display: none; /* Hide the processed image display */
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bootstrap Carousel with Download</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+<style>
+    body{
+        zoom: 40%;
+    }
+    h1{
+        font-size: 100px;
+    }
+    .container{
+        border: 1px solid black;
+    }
+    .dw{
+        width: 600px;
+        height: 100px;
+        font-size: 50px;
+    }
+    .cw{
+        width: 1200px;
+        height: 100px;
+        font-size: 50px;   
+    }
+</style>
 <body>
-    <!-- Webcam Stream Container -->
-    <center><p style="font-size: 30px;">Welcome to the World of Portrait</p></center>
-    <center><div id="my_camera" style="width:400px; height:400px;"></div></center>
+<center><h1>Welcome to the world of mosaic</h1></center>
+<br>
+<div class="container mt-5">
+<center><h1>(1) Sticky notes potrait</h1></center>
+  <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+      <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+    </div>
+
+    <div class="carousel-inner">
+      <!-- Slide 1 -->
+      <div class="carousel-item active">
+        <img src="images/stikynotes/kalam.png" class="d-block w-100" alt="Image 1">
+        <div class="carousel-caption d-none d-md-block">
+          <button class="dw btn btn-primary" onclick="downloadFile('kalam.jpg', 'pdf/stickynotes/kalam.pdf')">Download Image & PDF</button>
+        </div>
+      </div>
+
+      <!-- Slide 2 -->
+      <div class="carousel-item">
+        <img src="images/stikynotes/sarabhai.png" class="d-block w-100" alt="Image 2">
+        <div class="carousel-caption d-none d-md-block">
+          <button class="dw btn btn-primary" onclick="downloadFile('sarabhai.jpg', 'pdf/stickynotes/sarabhai.pdf')">Download Image & PDF</button>
+        </div>
+      </div>
+
+
+    <!-- Carousel Controls -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+</div>
+</div>
+<br>
+
+<div class="container mt-5">
+    <center><h1>(2) Pushpin potrait</h1></center>
+      <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+          <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+          <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+          <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        </div>
     
-    <!-- Capture Button -->
-    <center><button onclick="take_snapshot()">Take Snapshot</button></center>
+        <div class="carousel-inner">
+          <!-- Slide 1 -->
+          <div class="carousel-item active">
+            <img src="images/stikynotes/kalam.png" class="d-block w-100" alt="Image 1">
+            <div class="carousel-caption d-none d-md-block">
+              <button class="dw btn btn-primary" onclick="downloadFile('kalam.jpg', 'pdf/stickynotes/kalam.pdf')">Download Image & PDF</button>
+            </div>
+          </div>
     
-    <!-- Option Selector and Redirect Button -->
-    <center>
-        <select id="page_selector">
-            <option value="1">1.html</option>
-            <option value="2">2.html</option>
-            <option value="3">3.html</option>
-            <option value="4">4.html</option>
-            <option value="5">5.html</option>
-            <!-- <option value="6">6.html</option> -->
-            <!-- <option value="7">7.html</option> -->
-            <!-- <option value="8">8.html</option> -->
-            <!-- <option value="9">9./html</option> -->
-            <!-- <option value="10">10.html</option> -->
-        </select>
-        <button id="save_button" onclick="processImage()">Use the image</button>
-    </center>
+          <!-- Slide 2 -->
+          <div class="carousel-item">
+            <img src="images/stikynotes/sarabhai.png" class="d-block w-100" alt="Image 2">
+            <div class="carousel-caption d-none d-md-block">
+              <button class="dw btn btn-primary" onclick="downloadFile('sarabhai.jpg', 'pdf/stickynotes/sarabhai.pdf')">Download Image & PDF</button>
+            </div>
+          </div>
     
-    <!-- Captured Image Display -->
-    <center><div id="results"></div></center>
     
-    <!-- Processed Image Display (Hidden) -->
-    <img id="outputImage" alt="Processed Image">
+        <!-- Carousel Controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+    </div>
+</div>
+<br>
+    <div class="container mt-5">
+        <center><h1>(3) Single side dice potrait</h1></center>
+          <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+              <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+              <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+              <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            </div>
+        
+            <div class="carousel-inner">
+              <!-- Slide 1 -->
+              <div class="carousel-item active">
+                <img src="images/stikynotes/kalam.png" class="d-block w-100" alt="Image 1">
+                <div class="carousel-caption d-none d-md-block">
+                  <button class="dw btn btn-primary" onclick="downloadFile('kalam.jpg', 'pdf/stickynotes/kalam.pdf')">Download Image & PDF</button>
+                </div>
+              </div>
+        
+              <!-- Slide 2 -->
+              <div class="carousel-item">
+                <img src="images/stikynotes/sarabhai.png" class="d-block w-100" alt="Image 2">
+                <div class="carousel-caption d-none d-md-block">
+                  <button class="dw btn btn-primary" onclick="downloadFile('sarabhai.jpg', 'pdf/stickynotes/sarabhai.pdf')">Download Image & PDF</button>
+                </div>
+              </div>
+        
+        
+            <!-- Carousel Controls -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          </div>
+        </div>
+    </div>
+<br><br><br>
+<center><button class='cw btn btn-primary' onclick="changethesite()">Click this Button if you want to make Your own</button></center>
+<br><br>
 
-    <!-- Include Webcam.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js"></script>
-    <script>
-        const API_KEY = 'hEym97DknYjNdVSTWA5P7fhq'; // Replace with your API key for background removal
+<!-- Bootstrap JS & Popper.js -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function downloadFile(imageUrl, pdfUrl) {
+  // Download image
+  const imageLink = document.createElement('a');
+  imageLink.href = imageUrl;
+  imageLink.download = imageUrl;
+  imageLink.click();
 
-        // Configure the webcam
-        Webcam.set({
-            width: 400,
-            height: 400,
-            image_format: 'jpeg',
-            jpeg_quality: 90
-        });
+  // Download PDF
+  const pdfLink = document.createElement('a');
+  pdfLink.href = pdfUrl;
+  pdfLink.download = pdfUrl;
+  pdfLink.click();
+}
+ function changethesite(){
+    window.location.href = 'homepage.html';
+ }
 
-        // Attach the webcam stream to the HTML element
-        Webcam.attach('#my_camera');
-
-        // Function to capture the image
-        function take_snapshot() {
-            Webcam.snap(function(data_uri) {
-                // Display the captured image in the results div
-                document.getElementById('results').innerHTML = 
-                    '<img id="captured_image" src="'+data_uri+'"/>';
-
-                // Show the save button and page selector
-                document.getElementById('save_button').style.display = 'block';
-                document.getElementById('page_selector').style.display = 'block';
-            });
-        }
-
-        // Function to process the captured image
-        function processImage() {
-            const image = document.getElementById('captured_image').src;
-            removeBackgroundAndAddBlackBackground(image);
-        }
-
-        function removeBackgroundAndAddBlackBackground(imageUrl) {
-            const img = new Image();
-            img.crossOrigin = 'Anonymous'; // Handle CORS
-            img.onload = function () {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.width;
-                canvas.height = img.height;
-
-                // Draw white background
-                ctx.fillStyle = 'White';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // Draw the image on top
-                ctx.drawImage(img, 0, 0);
-
-                // Process image to remove background
-                processImageOnServer(canvas.toDataURL());
-            };
-            img.src = imageUrl;
-        }
-
-        function processImageOnServer(imageDataUrl) {
-            const formData = new FormData();
-            formData.append('image_file', dataURLtoBlob(imageDataUrl));
-
-            fetch('https://api.remove.bg/v1.0/removebg', {
-                method: 'POST',
-                headers: {
-                    'X-Api-Key': API_KEY
-                },
-                body: formData
-            })
-            .then(response => response.blob())
-            .then(blob => {
-                const url = URL.createObjectURL(blob);
-                // Add white background to the image with removed background
-                const img = new Image();
-                img.onload = function () {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-
-                    // Draw white background
-                    ctx.fillStyle = 'White';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    // Draw the processed image on top
-                    ctx.drawImage(img, 0, 0);
-
-                    // Set the output image source to the canvas data URL
-                    const finalImageUrl = canvas.toDataURL();
-                    const outputImage = document.getElementById('outputImage');
-                    if (outputImage) {
-                        outputImage.src = finalImageUrl;
-                    }
-
-                    // Store the final image URL in local storage and redirect
-                    localStorage.setItem('finalImageUrl', finalImageUrl);
-                    redirect_with_image();
-                };
-                img.src = url;
-            })
-            .catch(error => console.error('Error:', error));
-        }
-
-        function dataURLtoBlob(dataURL) {
-            const [header, data] = dataURL.split(',');
-            const mime = header.split(':')[1].split(';')[0];
-            const binary = atob(data);
-            const array = [];
-            for (let i = 0; i < binary.length; i++) {
-                array.push(binary.charCodeAt(i));
-            }
-            return new Blob([new Uint8Array(array)], { type: mime });
-        }
-
-        function redirect_with_image() {
-            // Get the selected page
-            const selectedPage = document.getElementById('page_selector').value + '.html';
-
-            // Redirect to the selected page
-            window.location.href = selectedPage;
-        }
-    </script>   
+</script>
 </body>
 </html>
-
