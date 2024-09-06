@@ -1,378 +1,100 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaic Generator Using Sticky Notes</title>
-</head>
-<style>
-    body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-    }
-
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    h1 {
-        text-align: center;
-    }
-
-    input[type="file"],
-    input[type="number"],
-    button {
-        display: block;
-        width: 100%;
-        margin: 10px 0;
-    }
-
-    button {
-        background-color: #007bff;
-        color: #fff;
-        border: none;
-        padding: 10px;
-        font-size: 16px;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background-color: #0056b3;
-    }
-
-    #resultText {
-        margin: 20px 0;
-    }
-
-    #previewContainer {
-        text-align: center;
-    }
-
-    #previewImage {
-        max-width: 100%;
-        height: auto;
-    }
-
-    #downloads {
-        margin: 20px 0;
-        text-align: center;
-    }
-    #display_image img {
-        max-width: 100%;
-        height: auto;
-    }
-</style>
-<body>
-    <div class="container">
-        <h1>Mosaic Generator Using Sticky Notes</h1>
-        <center><div id="display_image"></div></center>
-        <input type="number" id="totalPins" placeholder="Enter approx total number of sticky notes" min="1" value="100">
-        <button id="generateButton">Generate Image</button>
-        <div id="resultText"></div>
-        <div id="previewContainer">
-            <img id="previewImage" style="display:none;width: 100%;" />
-        </div>
-        <div id="downloads"></div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script>
-        const PIN_COLORS = [
-            [255, 255, 255],  // White
-            [238, 117, 184],  // Pink
-            [240, 177, 48],   // Orange
-            [241, 237, 61],   // Yellow
-            [119, 220, 126],  // Green
-            [255, 165, 164]   // Peach
-        ];
-
-        function calculateGridDimensions(sourceWidth, sourceHeight, blockSize) {
-            let rows = Math.ceil(sourceHeight / blockSize);
-            let columns = Math.ceil(sourceWidth / blockSize);
-            return [rows, columns];
-        }
-
-        function averageRGBArea(imageData, x, y, blockSize, sourceWidth) {
-            let totalR = 0, totalG = 0, totalB = 0;
-            let count = 0;
-            for (let dy = 0; dy < blockSize; dy++) {
-                for (let dx = 0; dx < blockSize; dx++) {
-                    let index = ((y + dy) * sourceWidth + (x + dx)) * 4;
-                    totalR += imageData[index];
-                    totalG += imageData[index + 1];
-                    totalB += imageData[index + 2];
-                    count++;
-                }
-            }
-            return [Math.floor(totalR / count), Math.floor(totalG / count), Math.floor(totalB / count)];
-        }
-
-        function closestPinColorWeighted(rgb) {
-            let [r, g, b] = rgb;
-            let colorDiffs = PIN_COLORS.map(color => {
-                let [cr, cg, cb] = color;
-                let colorDiff = Math.sqrt(((r - cr) * 0.30) ** 2 + ((g - cg) * 0.59) ** 2 + ((b - cb) * 0.11) ** 2);
-                return { diff: colorDiff, color };
-            });
-            return colorDiffs.reduce((min, curr) => curr.diff < min.diff ? curr : min).color;
-        }
-
-        function createImage(imageData, sourceWidth, sourceHeight, blockSize) {
-            console.log('Creating mosaic image with block size:', blockSize);
-            let canvas = document.createElement('canvas');
-            canvas.width = sourceWidth;
-            canvas.height = sourceHeight;
-            let ctx = canvas.getContext('2d');
-            let newImageData = ctx.createImageData(sourceWidth, sourceHeight);
-            let newData = newImageData.data;
-
-            for (let y = 0; y < sourceHeight; y += blockSize) {
-                for (let x = 0; x < sourceWidth; x += blockSize) {
-                    let blockRGB = averageRGBArea(imageData, x, y, blockSize, sourceWidth);
-                    let pinColor = closestPinColorWeighted(blockRGB);
-                    let [pr, pg, pb] = pinColor;
-                    for (let dy = 0; dy < blockSize; dy++) {
-                        for (let dx = 0; dx < blockSize; dx++) {
-                            let index = ((y + dy) * sourceWidth + (x + dx)) * 4;
-                            if (index < newData.length) {
-                                newData[index] = pr;
-                                newData[index + 1] = pg;
-                                newData[index + 2] = pb;
-                                newData[index + 3] = 255; // Alpha
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Draw the mosaic image without grid lines
-            ctx.putImageData(newImageData, 0, 0);
-            
-            console.log('Mosaic image created');
-            return canvas.toDataURL('image/png');
-        }
-        function getQueryParam(param) {
-            var urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
-        }
-        // Get the image URL from the query parameters
-        var image = decodeURIComponent(getQueryParam('image'));
-
-        // Display the image if available
-        if (image) {
-            document.getElementById('display_image').innerHTML = 
-                '<img id="image_element" src="'+image+'"/>';
-        } else {
-            document.getElementById('display_image').innerHTML = 
-                '<p>No image found.</p>';
-        }
-
-        function createPDFFromImage(mosaicImageURL, imgWidth, imgHeight, blockSize) {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('portrait', 'px', 'a4');
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-
-            canvas.width = imgWidth;
-            canvas.height = imgHeight;
-
-            const img = new Image();
-            img.src = mosaicImageURL;
-
-            img.onload = function () {
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
-
-                const gridWidth = 12 * blockSize;  // 12 blocks wide
-                const gridHeight = 16 * blockSize; // 16 blocks tall
-
-                let pageIndex = 0;
-                for (let y = 0; y < imgHeight; y += gridHeight) {
-                    for (let x = 0; x < imgWidth; x += gridWidth) {
-                        const pageCanvas = document.createElement('canvas');
-                        const pageCtx = pageCanvas.getContext('2d');
-
-                        pageCanvas.width = gridWidth;
-                        pageCanvas.height = gridHeight;
-
-                        pageCtx.drawImage(
-                            canvas,
-                            x, y, gridWidth, gridHeight,
-                            0, 0, gridWidth, gridHeight
-                        );
-
-                        const imgData = pageCanvas.toDataURL('image/png');
-                        if (pageIndex > 0) {
-                            pdf.addPage();
-                        }
-                        pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height);
-
-                        // Draw grid lines on the PDF page
-                        const pageWidth = pdf.internal.pageSize.width;
-                        const pageHeight = pdf.internal.pageSize.height;
-
-                        pdf.setDrawColor(0, 0, 0); // Set grid line color
-                        pdf.setLineWidth(0.5);
-
-                        for (let gy = 0; gy <= gridHeight; gy += blockSize) {
-                            pdf.line(0, gy * (pageHeight / gridHeight), pageWidth, gy * (pageHeight / gridHeight));
-                        }
-
-                        for (let gx = 0; gx <= gridWidth; gx += blockSize) {
-                            pdf.line(gx * (pageWidth / gridWidth), 0, gx * (pageWidth / gridWidth), pageHeight);
-                        }
-
-                        pageIndex++;
-                    }
-                }
-
-                pdf.save('mosaic_output.pdf');
-            };
-        }
-
-
-        document.getElementById('generateButton').addEventListener('click', () => {
-            const totalPinsInput = document.getElementById('totalPins');
-            const resultTextDiv = document.getElementById('resultText');
-            const previewImage = document.getElementById('previewImage');
-            const downloadsDiv = document.getElementById('downloads');
-
-            const totalPinsRequested = parseInt(totalPinsInput.value);
-
-            if (!image || !totalPinsRequested) {
-                alert('Please provide an image URL in the query parameters and enter the number of sticky notes.');
-                return;
-            }
-
-            const img = document.getElementById('image_element');
-            img.onload = async function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-
-                console.log('Image loaded, processing...');
-
-                const imageData = ctx.getImageData(0, 0, img.width, img.height).data;
-                const blockSize = Math.ceil(Math.sqrt((img.width * img.height) / totalPinsRequested));
-                console.log('Calculated block size:', blockSize);
-                
-                const mosaicImageURL = createImage(imageData, img.width, img.height, blockSize);
-
-                previewImage.src = mosaicImageURL;
-                previewImage.style.display = 'block';
-
-                resultTextDiv.textContent = 'Image generated successfully!';
-
-                const outputImageBlob = await fetch(mosaicImageURL).then(res => res.blob());
-                const outputImageURL = URL.createObjectURL(outputImageBlob);
-
-                downloadsDiv.innerHTML = `
-                    <a href="${outputImageURL}" download="output_image.png">Download Output Image</a>
-                    <button id="downloadPDFButton">Download PDF</button>
-                `;
-
-                document.getElementById('downloadPDFButton').addEventListener('click', () => {
-                    createPDFFromImage(mosaicImageURL, img.width, img.height, blockSize);
-                });
-            };
-
-            if (img.complete) {
-                img.onload();
-            }
-        });
-    </script>
-</body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mosaic Generator Using Sticky Notes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000; /* Black background */
+            color: #fff; /* White text color */
+        }
+
+        .container {
+            max-width: 90%;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #333; /* Dark background for content */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        input[type="file"],
+        input[type="number"],
+        button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+        }
+
+        input[type="number"] {
+            background-color: #444;
+            color: #fff;
+            border: 1px solid #666;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #resultText {
+            margin: 20px 0;
+            color: #fff;
+        }
+
+        #previewContainer {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            height: auto;
+        }
+
+        #downloads {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #display_image img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
 </head>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f4;
-    }
-
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    h1 {
-        text-align: center;
-    }
-
-    input[type="file"],
-    input[type="number"],
-    button {
-        display: block;
-        width: 100%;
-        margin: 10px 0;
-    }
-
-    button {
-        background-color: #007bff;
-        color: #fff;
-        border: none;
-        padding: 10px;
-        font-size: 16px;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background-color: #0056b3;
-    }
-
-    #resultText {
-        margin: 20px 0;
-    }
-
-    #previewContainer {
-        text-align: center;
-    }
-
-    #previewImage {
-        max-width: 100%;
-        height: auto;
-    }
-
-    #downloads {
-        margin: 20px 0;
-        text-align: center;
-    }
-    #display_image img {
-        max-width: 100%;
-        height: auto;
-    }
-</style>
 <body>
     <div class="container">
+        <img class="w-100" style="height: auto; max-height: 200px;" src="iitgn_logo.png" alt="IITGN Logo">
+        <br>   
+        <br>
         <h1>Mosaic Generator Using Sticky Notes</h1>
         <center><div id="display_image"></div></center>
         <input type="number" id="totalPins" placeholder="Enter approx total number of sticky notes" min="1" value="100">
         <button id="generateButton">Generate Image</button>
         <div id="resultText"></div>
         <div id="previewContainer">
-            <img id="previewImage" style="display:none;width: 100%;" />
+            <center><img id="previewImage" style="display:none;" /></center>
         </div>
         <div id="downloads">
             <button id="downloadPDFButton" style="display:none;">Download PDF</button>
@@ -520,59 +242,48 @@
                 document.getElementById('downloadPDFButton').onclick = () => {
                     const link = document.createElement('a');
                     link.href = URL.createObjectURL(pdfOutput);
-                    link.download = 'mosaic_output.pdf';
+                    link.download = 'mosaic.pdf';
                     link.click();
                 };
-
-                // Show the PDF download button
                 document.getElementById('downloadPDFButton').style.display = 'block';
             };
         }
 
         document.getElementById('generateButton').addEventListener('click', function () {
-            const totalPinsInput = document.getElementById('totalPins');
-            const resultTextDiv = document.getElementById('resultText');
-            const previewImage = document.getElementById('previewImage');
-            const downloadsDiv = document.getElementById('downloads');
-
-            const totalPinsRequested = parseInt(totalPinsInput.value);
-            if (isNaN(totalPinsRequested) || totalPinsRequested <= 0) {
-                resultTextDiv.textContent = 'Please enter a valid number of sticky notes.';
+            const totalPins = parseInt(document.getElementById('totalPins').value, 10);
+            if (isNaN(totalPins) || totalPins < 1) {
+                alert('Please enter a valid number of sticky notes.');
                 return;
             }
 
-            const imageURL = localStorage.getItem('finalImageUrl'); // Retrieve image URL from localStorage
-            if (!imageURL) {
-                resultTextDiv.textContent = 'No image found in localStorage.';
+            const img = document.getElementById('display_image').querySelector('img');
+            if (!img) {
+                alert('No image to process.');
                 return;
             }
 
-            const img = new Image();
-            img.crossOrigin = 'Anonymous'; // Handle cross-origin issues
-            img.src = imageURL;
+            const imgURL = img.src;
+            const imgElement = new Image();
+            imgElement.src = imgURL;
 
-            img.onload = function () {
-                const imgWidth = img.width;
-                const imgHeight = img.height;
-                const blockSize = Math.ceil(Math.sqrt((imgWidth * imgHeight) / totalPinsRequested));
-
+            imgElement.onload = function () {
                 const canvas = document.createElement('canvas');
-                canvas.width = imgWidth;
-                canvas.height = imgHeight;
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
+                canvas.width = imgElement.width;
+                canvas.height = imgElement.height;
+                ctx.drawImage(imgElement, 0, 0);
 
-                const imageData = ctx.getImageData(0, 0, imgWidth, imgHeight).data;
-                const mosaicImageURL = createImage(imageData, imgWidth, imgHeight, blockSize);
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                const blockSize = Math.ceil(Math.sqrt(canvas.width * canvas.height / totalPins));
+                const mosaicImageURL = createImage(imageData, canvas.width, canvas.height, blockSize);
+                
+                document.getElementById('previewImage').src = mosaicImageURL;
+                document.getElementById('previewImage').style.display = 'block';
 
-                previewImage.src = mosaicImageURL;
-                previewImage.style.display = 'block';
-
-                // Display download link
-                createPDFFromImage(mosaicImageURL, imgWidth, imgHeight, blockSize);
+                createPDFFromImage(mosaicImageURL, canvas.width, canvas.height, blockSize);
             };
+            
         });
-
         window.onload = function () {
             const imageURL = localStorage.getItem('finalImageUrl');
             console.log(imageURL)
