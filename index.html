@@ -6,175 +6,227 @@
   <title>Bootstrap Carousel with Download</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      color: #fff;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+    }
+
+    .container {
+      background-color: #1c1c1c;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      margin-bottom: 50px;
+    }
+
+    .carousel-inner img {
+      border-radius: 10px;
+    }
+
+    .carousel-caption {
+      bottom: 20px;
+    }
+
+    .carousel-caption .dw {
+      font-size: 1.5rem;
+      padding: 10px 20px;
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+      background-color: #fff;
+      border-radius: 50%;
+    }
+
+    .carousel-indicators [data-bs-target] {
+      background-color: #007bff;
+    }
+
+    .cw {
+      font-size: 1.5rem;
+      padding: 10px 30px;
+      background-color: #007bff;
+      border: none;
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    .cw:hover {
+      background-color: #0056b3;
+    }
+
+    .dw {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      transition: all 0.3s ease;
+    }
+
+    .dw:hover {
+      background-color: #0056b3;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .carousel-caption .dw {
+        font-size: 1.2rem;
+        padding: 8px 15px;
+      }
+
+      .cw {
+        font-size: 1.2rem;
+      }
+    }
+
+    @media (max-width: 576px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .carousel-caption .dw {
+        font-size: 1rem;
+      }
+
+      .cw {
+        font-size: 1rem;
+      }
+    }
+  </style>
 </head>
-<style>
-    body{
-        zoom: 100%;
-    }
-    h1{
-        font-size: 100px;
-    }
-    .container{
-        border: 1px solid black;
-    }
-    .dw{
-        width: 600px;
-        height: 100px;
-        font-size: 50px;
-    }
-    .cw{
-        width: 1200px;
-        height: 100px;
-        font-size: 50px;   
-    }
-</style>
 <body>
-<center><h1>Welcome to the world of mosaic</h1></center>
+
+
+<img class="d-block w-100" src="iitgn_logo.png" alt="">
 <br>
-<div class="container mt-5">
-<center><h1>(1) Sticky notes potrait</h1></center>
-  <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+<button class="cw btn btn-primary" style="float: right;" onclick="changethepage()">Make Your Own </button>&nbsp;
+
+<br>
+<br>
+<br>
+<!-- Page Header -->
+<center><h1>Welcome to the World of Mosaic</h1></center>
+<!-- Sticky Notes Portrait -->
+<div class="container">
+  <center><h1>(1) Sticky Notes Portrait</h1><br></center>
+  <div id="carouselStickyNotes" class="carousel slide" data-bs-ride="carousel">
     <div class="carousel-indicators">
-      <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-      <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
-      <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+      <button type="button" data-bs-target="#carouselStickyNotes" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#carouselStickyNotes" data-bs-slide-to="1" aria-label="Slide 2"></button>
     </div>
-
     <div class="carousel-inner">
-      <!-- Slide 1 -->
       <div class="carousel-item active">
-        <img src="images/stikynotes/kalam.png" class="d-block w-100" alt="Image 1">
-        <div class="carousel-caption d-none d-md-block">
-          <button class="dw btn btn-primary" onclick="downloadFile('kalam.png', 'pdf/stickynotes/kalam.pdf')">Download Image & PDF</button>
+        <center><img src="images/stikynotes/kalam.png" class="d-block w-50" alt="Image 1"></center>
+        <div class="carousel-caption d-md-block">
+          <button class="dw btn btn-primary" onclick="downloadFile('kalam.png', 'pdf/stickynotes/kalam.pdf')">Download PDF</button>
         </div>
       </div>
-
-      <!-- Slide 2 -->
       <div class="carousel-item">
-        <img src="images/stikynotes/sarabhai.png" class="d-block w-100" alt="Image 2">
-        <div class="carousel-caption d-none d-md-block">
-          <button class="dw btn btn-primary" onclick="downloadFile('sarabhai.png', 'pdf/stickynotes/sarabhai.pdf')">Download Image & PDF</button>
+        <center><img src="images/stikynotes/sarabhai.png" class="d-block w-50" alt="Image 2"></center>
+        <div class="carousel-caption d-md-block">
+          <button class="dw btn btn-primary" onclick="downloadFile('sarabhai.png', 'pdf/stickynotes/sarabhai.pdf')">Download PDF</button>
         </div>
       </div>
-
-
-    <!-- Carousel Controls -->
-    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselStickyNotes" data-bs-slide="prev">
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Previous</span>
     </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselStickyNotes" data-bs-slide="next">
       <span class="carousel-control-next-icon" aria-hidden="true"></span>
       <span class="visually-hidden">Next</span>
     </button>
   </div>
 </div>
-</div>
-<br>
 
-<div class="container mt-5">
-    <center><h1>(2) Pushpin potrait</h1></center>
-      <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
-        <div class="carousel-indicators">
-          <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-          <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
-          <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+<!-- Pushpin Portrait -->
+<div class="container">
+  <center><h1>(2) Pushpin Portrait</h1></center>
+  <div id="carouselPushpin" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#carouselPushpin" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#carouselPushpin" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    </div>
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <center><img src="images/stikynotes/kalam.png" class="d-block w-50" alt="Image 1"></center>
+        <div class="carousel-caption d-md-block">
+          <button class="dw btn btn-primary" onclick="downloadFile('kalam.png', 'pdf/stickynotes/kalam.pdf')">Download PDF</button>
         </div>
-    
-        <div class="carousel-inner">
-          <!-- Slide 1 -->
-          <div class="carousel-item active">
-            <img src="images/stikynotes/kalam.png" class="d-block w-100" alt="Image 1">
-            <div class="carousel-caption d-none d-md-block">
-              <button class="dw btn btn-primary" onclick="downloadFile('kalam.png', 'pdf/stickynotes/kalam.pdf')">Download Image & PDF</button>
-            </div>
-          </div>
-    
-          <!-- Slide 2 -->
-          <div class="carousel-item">
-            <img src="images/stikynotes/sarabhai.png" class="d-block w-100" alt="Image 2">
-            <div class="carousel-caption d-none d-md-block">
-              <button class="dw btn btn-primary" onclick="downloadFile('sarabhai.png', 'pdf/stickynotes/sarabhai.pdf')">Download Image & PDF</button>
-            </div>
-          </div>
-    
-    
-        <!-- Carousel Controls -->
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Next</span>
-        </button>
+      </div>
+      <div class="carousel-item">
+        <center><img src="images/stikynotes/sarabhai.png" class="d-block w-50" alt="Image 2"></center>
+        <div class="carousel-caption d-md-block">
+          <button class="dw btn btn-primary" onclick="downloadFile('sarabhai.png', 'pdf/stickynotes/sarabhai.pdf')">Download PDF</button>
+        </div>
       </div>
     </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselPushpin" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselPushpin" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
 </div>
-<br>
-    <div class="container mt-5">
-        <center><h1>(3) Single side dice potrait</h1></center>
-          <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-indicators">
-              <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-              <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
-              <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
-            </div>
-        
-            <div class="carousel-inner">
-              <!-- Slide 1 -->
-              <div class="carousel-item active">
-                <img src="images/stikynotes/kalam.png" class="d-block w-100" alt="Image 1">
-                <div class="carousel-caption d-none d-md-block">
-                  <button class="dw btn btn-primary" onclick="downloadFile('kalam.png', 'pdf/stickynotes/kalam.pdf')">Download Image & PDF</button>
-                </div>
-              </div>
-        
-              <!-- Slide 2 -->
-              <div class="carousel-item">
-                <img src="images/stikynotes/sarabhai.png" class="d-block w-100" alt="Image 2">
-                <div class="carousel-caption d-none d-md-block">
-                  <button class="dw btn btn-primary" onclick="downloadFile('sarabhai.png', 'pdf/stickynotes/sarabhai.pdf')">Download Image & PDF</button>
-                </div>
-              </div>
-        
-        
-            <!-- Carousel Controls -->
-            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
-              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-              <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
-              <span class="carousel-control-next-icon" aria-hidden="true"></span>
-              <span class="visually-hidden">Next</span>
-            </button>
-          </div>
-        </div>
-    </div>
-<br><br><br>
-<center><button class='cw btn btn-primary' onclick="changethesite()">Click this Button if you want to make Your own</button></center>
-<br><br>
 
-<!-- Bootstrap JS & Popper.js -->
+<!-- Single Side Dice Portrait -->
+<div class="container">
+  <center><h1>(3) Single Side Dice Portrait</h1></center>
+  <div id="carouselDice" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#carouselDice" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#carouselDice" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    </div>
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <center><img src="images/stikynotes/kalam.png" class="d-block w-50" alt="Image 1"></center>
+        <div class="carousel-caption d-md-block">
+          <button class="dw btn btn-primary" onclick="downloadFile('kalam.png', 'pdf/stickynotes/kalam.pdf')">Download PDF</button>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <center><img src="images/stikynotes/sarabhai.png" class="d-block w-50" alt="Image 2"></center>
+        <div class="carousel-caption d-md-block">
+          <button class="dw btn btn-primary" onclick="downloadFile('sarabhai.png', 'pdf/stickynotes/sarabhai.pdf')">Download PDF</button>
+        </div>
+      </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselDice" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselDice" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    function downloadFile(imageUrl, pdfUrl) {
-  // Download image
-  const imageLink = document.createElement('a');
-  imageLink.href = imageUrl;
-  imageLink.download = imageUrl;
-  imageLink.click();
-
-  // Download PDF
-  const pdfLink = document.createElement('a');
-  pdfLink.href = pdfUrl;
-  pdfLink.download = pdfUrl;
-  pdfLink.click();
-}
- function changethesite(){
+  function downloadFile(imageName, pdfPath) {
+    window.open(pdfPath, '_blank');
+  }
+  function changethepage(){
     window.location.href = 'homepage.html';
  }
-
 </script>
 </body>
 </html>
