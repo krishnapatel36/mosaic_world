@@ -303,73 +303,91 @@
         }
 
         function createPDFFromImage(mosaicImageURL, totalPinsRequested) {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('portrait', 'px', 'a4');
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('portrait', 'px', 'a4');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
 
-            const img = new Image();
-            img.src = mosaicImageURL;
+    const img = new Image();
+    img.src = mosaicImageURL;
 
-            img.onload = function () {
-                const imgWidth = img.width;
-                const imgHeight = img.height;
+    img.onload = function () {
+        const imgWidth = img.width;
+        const imgHeight = img.height;
 
-                // Calculate block size based on the total number of pins
-                const blockSize = Math.ceil(Math.sqrt((imgWidth * imgHeight) / totalPinsRequested));
+        // Calculate block size based on the total number of pins
+        const blockSize = Math.ceil(Math.sqrt((imgWidth * imgHeight) / totalPinsRequested));
 
-                // Set canvas dimensions to match the image
-                canvas.width = imgWidth;
-                canvas.height = imgHeight;
-                ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
+        // Set canvas dimensions to match the image
+        canvas.width = imgWidth;
+        canvas.height = imgHeight;
+        ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
 
-                // Calculate grid width and height
-                const gridWidth = 18 * blockSize;
-                const gridHeight = 26 * blockSize;
+        // Calculate grid width and height (18 blocks wide and 26 blocks tall)
+        const gridWidth = 18 * blockSize;
+        const gridHeight = 26 * blockSize;
 
-                let pageIndex = 0;
-                for (let y = 0; y < imgHeight; y += gridHeight) {
-                    for (let x = 0; x < imgWidth; x += gridWidth) {
-                        const pageCanvas = document.createElement('canvas');
-                        const pageCtx = pageCanvas.getContext('2d');
+        let pageIndex = 0;
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // For row labels (A, B, C...)
 
-                        pageCanvas.width = gridWidth;
-                        pageCanvas.height = gridHeight;
+        // Calculate total rows and columns
+        const totalCols = Math.ceil(imgWidth / gridWidth);
+        const totalRows = Math.ceil(imgHeight / gridHeight);
 
-                        pageCtx.drawImage(
-                            canvas,
-                            x, y, gridWidth, gridHeight,
-                            0, 0, gridWidth, gridHeight
-                        );
+        for (let row = 0; row < totalRows; row++) {
+            for (let col = 0; col < totalCols; col++) {
+                const x = col * gridWidth;
+                const y = row * gridHeight;
 
-                        const imgData = pageCanvas.toDataURL('image/png');
-                        if (pageIndex > 0) {
-                            pdf.addPage();
-                        }
-                        pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height);
+                const pageCanvas = document.createElement('canvas');
+                const pageCtx = pageCanvas.getContext('2d');
 
-                        // Draw grid lines on the PDF page
-                        const pageWidth = pdf.internal.pageSize.width;
-                        const pageHeight = pdf.internal.pageSize.height;
+                pageCanvas.width = gridWidth;
+                pageCanvas.height = gridHeight;
 
-                        pdf.setDrawColor(0, 0, 0); // Set grid line color
-                        pdf.setLineWidth(0.5);
+                pageCtx.drawImage(
+                    canvas,
+                    x, y, gridWidth, gridHeight,
+                    0, 0, gridWidth, gridHeight
+                );
 
-                        for (let gy = 0; gy <= gridHeight; gy += blockSize) {
-                            pdf.line(0, gy * (pageHeight / gridHeight), pageWidth, gy * (pageHeight / gridHeight));
-                        }
+                const imgData = pageCanvas.toDataURL('image/png');
+                if (pageIndex > 0) {
+                    pdf.addPage();
+                }
+                pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height);
 
-                        for (let gx = 0; gx <= gridWidth; gx += blockSize) {
-                            pdf.line(gx * (pageWidth / gridWidth), 0, gx * (pageWidth / gridWidth), pageHeight);
-                        }
+                // Create the page label like "A1", "B2", etc.
+                const pageLabel = `${letters[row]}${col + 1}`; // Row (A, B, C...) and Column (1, 2, 3...)
 
-                        pageIndex++;
-                    }
+                // Draw the page label on the bottom-right corner of the page
+                pdf.setFontSize(12);
+                pdf.setTextColor(0, 0, 0);
+                pdf.text(pageLabel, pdf.internal.pageSize.width - 20, pdf.internal.pageSize.height - 620);
+
+                // Draw grid lines on the PDF page
+                const pageWidth = pdf.internal.pageSize.width;
+                const pageHeight = pdf.internal.pageSize.height;
+
+                pdf.setDrawColor(0, 0, 0); // Set grid line color
+                pdf.setLineWidth(0.5);
+
+                for (let gy = 0; gy <= gridHeight; gy += blockSize) {
+                    pdf.line(0, gy * (pageHeight / gridHeight), pageWidth, gy * (pageHeight / gridHeight));
                 }
 
-                pdf.save('mosaic_output.pdf');
-            };
+                for (let gx = 0; gx <= gridWidth; gx += blockSize) {
+                    pdf.line(gx * (pageWidth / gridWidth), 0, gx * (pageWidth / gridWidth), pageHeight);
+                }
+
+                pageIndex++;
+            }
         }
+
+        // Save the PDF
+        pdf.save('mosaic_output.pdf');
+    };
+}
     </script>
 </body>
 </html>
