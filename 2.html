@@ -301,7 +301,6 @@
             let imageURL = ditheredCanvas.toDataURL('image/png');
             createPDFFromImage(imageURL, totalPinsRequested);
         }
-
         function createPDFFromImage(mosaicImageURL, totalPinsRequested) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('portrait', 'px', 'a4');
@@ -327,10 +326,44 @@
         const gridWidth = 18 * blockSize;
         const gridHeight = 26 * blockSize;
 
-        let pageIndex = 0;
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; // For row labels (A, B, C...)
+        // Map to store color counts
+        const colorCounts = {};
+        const colorPickers = document.querySelectorAll('#colorPickers input[type="color"]');
+        
+        colorPickers.forEach(colorPicker => {
+            const colorHex = colorPicker.value;
+            colorCounts[colorHex] = 0;
+        });
 
-        // Calculate total rows and columns
+        // Count colors in the image
+        function countColorsInImage() {
+            const imageData = ctx.getImageData(0, 0, imgWidth, imgHeight);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const colorHex = rgbToHex(r, g, b);
+                if (colorCounts.hasOwnProperty(colorHex)) {
+                    colorCounts[colorHex]++;
+                }
+            }
+        }
+
+        countColorsInImage();
+
+        // Add first page with total push pin counts
+        pdf.text('Push Pin Art - Total Counts', 10, 10);
+        let yPosition = 20;
+        for (const [colorHex, count] of Object.entries(colorCounts)) {
+            pdf.setTextColor(0,0,0);
+            pdf.text(`Color ${colorHex}: ${count} pins`, 10, yPosition);
+            yPosition += 10;
+        }
+        pdf.addPage();
+        let pageIndex = 1;
+
+        // Add subsequent pages with grid images
         const totalCols = Math.ceil(imgWidth / gridWidth);
         const totalRows = Math.ceil(imgHeight / gridHeight);
 
@@ -352,13 +385,13 @@
                 );
 
                 const imgData = pageCanvas.toDataURL('image/png');
-                if (pageIndex > 0) {
+                if (pageIndex > 1) {
                     pdf.addPage();
                 }
                 pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height);
 
                 // Create the page label like "A1", "B2", etc.
-                const pageLabel = `${letters[row]}${col + 1}`; // Row (A, B, C...) and Column (1, 2, 3...)
+                const pageLabel = `${String.fromCharCode(65 + row)}${col + 1}`; // Row (A, B, C...) and Column (1, 2, 3...)
 
                 // Draw the page label on the bottom-right corner of the page
                 pdf.setFontSize(12);
@@ -388,6 +421,13 @@
         pdf.save('mosaic_output.pdf');
     };
 }
+
+// Helper function to convert RGB to HEX
+function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
+
     </script>
 </body>
 </html>
