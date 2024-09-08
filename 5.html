@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,30 +9,31 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #000; /* Black background for the body */
-            color: #fff; /* White text color for contrast */
+            background-color: #000;
+            color: #fff;
             text-align: center;
             padding: 20px;
             margin: 0;
         }
 
         .container {
-            max-width: 90%; /* Adjust max width to fit smaller screens */
+            max-width: 90%;
             margin: 0 auto;
             padding: 20px;
-            background-color: #333; /* Dark background for the container */
+            background-color: #333;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        input[type="number"], button {
+        input[type="number"],
+        button {
             margin: 10px;
             padding: 10px;
-            border: 1px solid #555; /* Darker border for inputs and buttons */
+            border: 1px solid #555;
             border-radius: 4px;
-            background-color: #222; /* Darker background for inputs and buttons */
-            color: #fff; /* White text color for inputs and buttons */
-            font-size: 16px; /* Adjust font size for better readability */
+            background-color: #222;
+            color: #fff;
+            font-size: 16px;
         }
 
         button {
@@ -46,52 +48,15 @@
         }
 
         #canvas {
-            border: 2px solid #555; /* Darker border for the canvas */
-            background-color: #222; /* Darker background for the canvas */
+            border: 2px solid #555;
+            background-color: #222;
             margin-top: 20px;
-            width: 0%; /* Make canvas responsive */
-            height: 0%; /* Maintain aspect ratio */
+            width: 0%;
+            height: 0%;
         }
 
         #output {
             margin-top: 20px;
-        }
-
-        .matrix {
-            display: grid;
-            gap: 2px;
-            justify-content: center;
-            font-family: monospace;
-            background-color: #222; /* Darker background for the matrix container */
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #555; /* Darker border for the matrix container */
-        }
-
-        .cell {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            text-align: center;
-            vertical-align: middle;
-            line-height: 30px;
-            border: 1px solid #444; /* Darker border for cells */
-            font-size: 14px; /* Adjust font size for readability */
-        }
-
-        #see-gif-button {
-            display: none; /* Initially hide the "See GIF" button */
-            background-color: #007bff;
-            color: #fff;
-            cursor: pointer;
-            padding: 10px;
-            border: 1px solid #555;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        #see-gif-button:hover {
-            background-color: #0056b3;
         }
 
         /* Responsive design */
@@ -99,38 +64,10 @@
             .container {
                 padding: 10px;
             }
-
-            input[type="number"], button {
-                font-size: 14px;
-                padding: 8px;
-                margin: 5px;
-            }
-
-            .cell {
-                width: 25px;
-                height: 25px;
-                line-height: 25px;
-                font-size: 12px;
-            }
-
-        }
-
-        @media (max-width: 480px) {
-            .cell {
-                width: 20px;
-                height: 20px;
-                line-height: 20px;
-                font-size: 10px;
-            }
-
-            input[type="number"], button {
-                font-size: 12px;
-                padding: 6px;
-                margin: 3px;
-          }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <img class="w-100" style="height: auto; max-height: 200px;" src="iitgn_logo.png" alt="IITGN Logo">
@@ -138,16 +75,18 @@
         <h1>Bindi Art</h1>
         <img id="displayImage" alt="Selected Image">
         <br><br>
+        <br>
         Matrix size:<input type="number" id="matrix-size" min="1" max="70" value="10">
         <button id="process-button">Process Image</button>
-        <button id="see-gif-button">See GIF</button>
-
+        <button id="see-gif-button" style="display:none;">See GIF</button>
+        <button id="download-pdf-button" style="display:none;">Download PDF</button>
         <canvas id="canvas"></canvas>
         <div id="output">
             <div id="matrix" class="matrix"></div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         const imageUrl = localStorage.getItem('finalImageUrl');
         if (imageUrl) {
@@ -155,8 +94,8 @@
             displayImage.src = imageUrl;
         }
         document.getElementById('process-button').addEventListener('click', () => {
-            const finalImageUrl = localStorage.getItem('finalImageUrl');
             const matrixSize = parseInt(document.getElementById('matrix-size').value);
+            const finalImageUrl = imageUrl;
 
             if (!finalImageUrl) {
                 alert('No image found in localStorage. Please make sure the image is stored as finalImageUrl.');
@@ -166,29 +105,23 @@
             const imgElement = new Image();
             imgElement.src = finalImageUrl;
 
-            imgElement.onload = function() {
+            imgElement.onload = function () {
                 const canvas = document.getElementById('canvas');
                 const ctx = canvas.getContext('2d');
-
                 canvas.width = matrixSize;
                 canvas.height = matrixSize;
-
-                // Draw image on canvas
                 ctx.drawImage(imgElement, 0, 0, matrixSize, matrixSize);
 
-                // Process image
                 const imageData = ctx.getImageData(0, 0, matrixSize, matrixSize);
                 const data = imageData.data;
                 const pixelValues = [];
 
                 for (let i = 0; i < data.length; i += 4) {
-                    // Convert to grayscale
                     const r = data[i];
                     const g = data[i + 1];
                     const b = data[i + 2];
                     const gray = 0.3 * r + 0.59 * g + 0.11 * b;
 
-                    // Map grayscale to 1-5
                     let mappedValue;
                     if (gray < 51) {
                         mappedValue = 5;
@@ -205,36 +138,92 @@
                     pixelValues.push(mappedValue);
                 }
 
-                // Convert pixelValues to 2D array
                 const matrix = [];
                 for (let row = 0; row < matrixSize; row++) {
                     matrix.push(pixelValues.slice(row * matrixSize, (row + 1) * matrixSize));
                 }
 
-                // Display the result as a matrix
-                const matrixDiv = document.getElementById('matrix');
-                matrixDiv.innerHTML = '';  // Clear previous content
-
-                matrixDiv.style.gridTemplateColumns = `repeat(${matrixSize}, 30px)`;
-
-                for (let row = 0; row < matrixSize; row++) {
-                    for (let col = 0; col < matrixSize; col++) {
-                        const cell = document.createElement('div');
-                        cell.className = 'cell';
-                        cell.textContent = matrix[row][col];
-                        matrixDiv.appendChild(cell);
-                    }
-                }
-
                 console.log('2D Matrix:', matrix);
 
-                // Store the matrix and matrixSize in localStorage
                 localStorage.setItem('matrix', JSON.stringify(matrix));
                 localStorage.setItem('matrixSize', matrixSize);
 
-                // Show the "See GIF" button
+                document.getElementById('download-pdf-button').style.display = 'inline-block';
                 document.getElementById('see-gif-button').style.display = 'inline-block';
             };
+        });
+
+        document.getElementById('download-pdf-button').addEventListener('click', () => {
+            const matrix = JSON.parse(localStorage.getItem('matrix'));
+            const matrixSize = parseInt(localStorage.getItem('matrixSize'));
+
+            if (!matrix || !matrixSize) {
+                alert('No matrix found. Please process the image first.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+
+            // Calculate maximum cell size that fits the page
+            const maxCellSize = Math.min(
+                (pageWidth - 20) / matrixSize,
+                (pageHeight - 20) / matrixSize
+            );
+
+            const cellSize = maxCellSize; // Use the maximum cell size
+
+            const startX = (pageWidth - (matrixSize * cellSize)) / 2; // Center the grid horizontally
+            const startY = (pageHeight - (matrixSize * cellSize)) / 2; // Center the grid vertically
+
+            // Count each type of bindi
+            let bindiCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+            matrix.forEach(row => {
+                row.forEach(value => {
+                    if (bindiCounts.hasOwnProperty(value)) {
+                        bindiCounts[value] += 1;
+                    }
+                });
+            });
+
+            // Add the counts to the first page
+            doc.setFontSize(16);
+            doc.setTextColor(0, 0, 0);
+            doc.text('Bindi Counts:', 10, 20); // Title for counts
+
+            let yPosition = 30;
+            for (let bindiValue in bindiCounts) {
+                doc.text(`Bindi Value ${bindiValue}: ${bindiCounts[bindiValue]}`, 10, yPosition);
+                yPosition += 10; // Move down for next count
+            }
+
+            // Move to the second page for the grid
+            doc.addPage();
+
+            // Draw the grid on the second page
+            for (let row = 0; row < matrixSize; row++) {
+                for (let col = 0; col < matrixSize; col++) {
+                    const value = matrix[row][col];
+                    const radius = value * (cellSize / 15); // Adjust the radius multiplier to scale circles
+
+                    const centerX = startX + col * cellSize + cellSize / 2;
+                    const centerY = startY + row * cellSize + cellSize / 2;
+                    doc.setDrawColor('red');
+                    doc.setFillColor('red');
+                    // Draw the circle based on the value
+                    if (value === 1) {
+                        // Draw a small dot
+                        doc.circle(centerX, centerY, 0.7, 'F'); // Filled small circle
+                    } else {
+                        // Draw a circle with only border
+                        doc.circle(centerX, centerY, radius);
+                    }
+                }
+            }
+
+            doc.save('bindi_art.pdf');
         });
 
         document.getElementById('see-gif-button').addEventListener('click', () => {
@@ -243,4 +232,5 @@
         });
     </script>
 </body>
+
 </html>
