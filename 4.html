@@ -1,389 +1,43 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cube Art Generator</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #000; /* Black background for the body */
-            color: #fff; /* White text color for contrast */
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #333; /* Dark background for the container */
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: #fff; /* White text color for the heading */
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #ddd; /* Light gray color for labels */
-        }
-
-        input[type="number"] {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #555; /* Darker border for the input */
-            border-radius: 4px;
-            box-sizing: border-box;
-            background-color: #222; /* Darker background for the input */
-            color: #fff; /* White text color for the input */
-        }
-
-        button {
-            background-color: #007bff;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        canvas {
-            margin-top: 20px;
-            border: 2px solid #fff; /* White border for the canvas */
-            border-radius: 4px;
-            background-color: #222; /* Darker background for the canvas */
-        }
-
-        #display_image img {
-            border: 2px solid #fff; /* White border for the image */
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <img class="w-100" style="height: auto; max-height: 200px;" src="iitgn_logo.png" alt="IITGN Logo">
-        <br><br>
-        <h1>Cube art generator</h1>
-        <center><div id="display_image"></div></center>
-        <br>
-        <label for="cubeAmount">Number of Cubes:</label>
-        <input type="number" id="cubeAmount" value="1000">
-        
-        <button id="generateButton">Generate Cube Art</button>
-        <br>
-        <canvas id="canvas"></canvas>
-    </div>
-
-    <script>
-        const generateButton = document.getElementById('generateButton');
-        const imageInput = document.getElementById('imageInput');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        imageUrl = localStorage.getItem('finalImageUrl')
-        if (imageUrl) {
-            document.getElementById('display_image').innerHTML = 
-                '<img id="image_element" src="'+imageUrl+'"/>';
-        } else {
-            document.getElementById('display_image').innerHTML = 
-                '<p>No image found.</p>';
-        }
-        generateButton.addEventListener('click', () => {
-            const amount = parseInt(document.getElementById('cubeAmount').value);
-
-            const img = new Image();
-            img.src = imageUrl
-
-            img.onload = () => {
-                const cubeArt = new CubeArt(amount, img);
-                cubeArt.animate();
-            }
-        });
-
-        class CubeArt {
-            constructor(amount, img) {
-                this.amount = amount;
-                this.img = img;
-                this.colours = {
-                    "white": [255, 255, 255],
-                    "yellow": [248, 254, 84],
-                    "red": [203, 42, 29],
-                    "orange": [240, 144, 60],
-                    "blue": [53, 90, 167],
-                    "green": [103, 221, 67],
-                };
-                this.spacing = 2;
-                this.colorAnimationSpeed = 100; // Time in milliseconds between color updates
-            }
-
-            animate() {
-                const { width, height } = this.img;
-                const s = Math.sqrt(this.amount / (width * height));
-                const w2 = Math.floor(width * s);
-                const h2 = Math.floor(height * s);
-                const cubieDim = { width: w2 * 3, height: h2 * 3 };
-                const cubieSize = Math.min(width / cubieDim.width, height / cubieDim.height);
-
-                canvas.width = width + (this.spacing * (cubieDim.width - 1));
-                canvas.height = height + (this.spacing * (cubieDim.height - 1));
-
-                ctx.drawImage(this.img, 0, 0, width, height);
-                const imgData = ctx.getImageData(0, 0, width, height);
-                const brightnessValues = this.getBrightnessValues(imgData, cubieDim, cubieSize);
-
-                const cText = this.setColours(brightnessValues);
-                this.drawRandomColors(cubieDim, cubieSize);
-
-                // Start the animation
-                this.animateTransition(cText, cubieDim, cubieSize);
-            }
-
-            getBrightnessValues(imgData, cubieDim, cubieSize) {
-                const brightVals = [];
-                let minBright = 255;
-                let maxBright = 0;
-
-                for (let j = 0; j < cubieDim.height; j++) {
-                    const row = [];
-                    for (let i = 0; i < cubieDim.width; i++) {
-                        const x = Math.min(Math.floor(i * cubieSize), imgData.width - 1);
-                        const y = Math.min(Math.floor(j * cubieSize), imgData.height - 1);
-                        const index = (y * imgData.width + x) * 4;
-                        const r = imgData.data[index];
-                        const g = imgData.data[index + 1];
-                        const b = imgData.data[index + 2];
-                        const brightness = (r * 0.21) + (g * 0.71) + (b * 0.08);
-
-                        if (brightness < minBright) minBright = brightness;
-                        if (brightness > maxBright) maxBright = brightness;
-
-                        row.push(brightness);
-                    }
-                    brightVals.push(row);
-                }
-                this.minBright = minBright;
-                this.maxBright = maxBright;
-                return brightVals;
-            }
-
-            setColours(brightVals) {
-                const cText = [];
-                const segSize = (this.maxBright - this.minBright) / 6;
-
-                for (let j = 0; j < brightVals.length; j++) {
-                    const row = [];
-                    for (let i = 0; i < brightVals[j].length; i++) {
-                        const b = brightVals[j][i];
-                        let val;
-                        if (b <= segSize) val = "B";
-                        else if (b > segSize && b <= segSize * 2) val = "G";
-                        else if (b > segSize * 2 && b <= segSize * 3) val = "R";
-                        else if (b > segSize * 3 && b <= segSize * 4) val = "O";
-                        else if (b > segSize * 4 && b <= segSize * 5) val = "Y";
-                        else val = "W";
-                        row.push(val);
-                    }
-                    cText.push(row);
-                }
-                return cText;
-            }
-
-            drawRandomColors(cubieDim, cubieSize) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                for (let j = 0; j < cubieDim.height; j++) {
-                    for (let i = 0; i < cubieDim.width; i++) {
-                        const x0 = i * (cubieSize + this.spacing);
-                        const y0 = j * (cubieSize + this.spacing);
-                        const x1 = x0 + cubieSize;
-                        const y1 = y0 + cubieSize;
-
-                        const randomColor = this.getRandomColor();
-                        ctx.fillStyle = `rgb(${randomColor[0]}, ${randomColor[1]}, ${randomColor[2]})`;
-                        ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-                    }
-                }
-
-                ctx.strokeStyle = 'white'; /* Change border color to white */
-                ctx.lineWidth = 0;
-
-                for (let row = 0; row < cubieDim.height; row += 3) {
-                    for (let col = 0; col < cubieDim.width; col += 3) {
-                        const topFaceX0 = col * (cubieSize + this.spacing);
-                        const topFaceY0 = row * (cubieSize + this.spacing);
-                        const topFaceX1 = topFaceX0 + (cubieSize + this.spacing) * 3;
-                        const topFaceY1 = topFaceY0 + (cubieSize + this.spacing) * 3;
-
-                        ctx.strokeRect(topFaceX0, topFaceY0, topFaceX1 - topFaceX0, topFaceY1 - topFaceY0);
-                    }
-                }
-            }
-
-            getRandomColor() {
-                const colors = Object.values(this.colours);
-                return colors[Math.floor(Math.random() * colors.length)];
-            }
-
-            animateTransition(cText, cubieDim, cubieSize) {
-                const startTime = performance.now();
-                const duration = 10000; // Duration of the animation in milliseconds (10 seconds)
-                const totalRows = cubieDim.height;
-                let lastColorUpdate = startTime;
-
-                const step = (currentTime) => {
-                    const elapsedTime = currentTime - startTime;
-                    const progress = Math.min(elapsedTime / duration, 1);
-                    const visibleRows = Math.ceil(progress * totalRows);
-
-                    // Draw the background with random colors, updating at the specified speed
-                    if (currentTime - lastColorUpdate > this.colorAnimationSpeed) {
-                        this.drawRandomColors(cubieDim, cubieSize);
-                        lastColorUpdate = currentTime;
-                    }
-
-                    // Reveal correct colors for the visible rows
-                    for (let row = 0; row < visibleRows; row++) {
-                        for (let col = 0; col < cubieDim.width; col++) {
-                            const x0 = col * (cubieSize + this.spacing);
-                            const y0 = row * (cubieSize + this.spacing);
-                            const x1 = x0 + cubieSize;
-                            const y1 = y0 + cubieSize;
-
-                            const color = this.getColor(cText[row][col]);
-                            ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-                            ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-                        }
-                    }
-
-                    if (progress < 1) {
-                        requestAnimationFrame(step);
-                    } else {
-                        // Final draw to ensure last state is rendered
-                        this.drawFinal(cText, cubieDim, cubieSize);
-                    }
-                };
-
-                requestAnimationFrame(step);
-            }
-
-            getColor(char) {
-                switch (char) {
-                    case "W": return this.colours["white"];
-                    case "Y": return this.colours["yellow"];
-                    case "O": return this.colours["orange"];
-                    case "R": return this.colours["red"];
-                    case "G": return this.colours["green"];
-                    default: return this.colours["blue"];
-                }
-            }
-
-            drawFinal(cText, cubieDim, cubieSize) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                for (let j = 0; j < cText.length; j++) {
-                    for (let i = 0; i < cText[j].length; i++) {
-                        const x0 = i * (cubieSize + this.spacing);
-                        const y0 = j * (cubieSize + this.spacing);
-                        const x1 = x0 + cubieSize;
-                        const y1 = y0 + cubieSize;
-
-                        const color = this.getColor(cText[j][i]);
-                        ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-                        ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-                    }
-                }
-
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 0;
-
-                for (let row = 0; row < cubieDim.height; row += 3) {
-                    for (let col = 0; col < cubieDim.width; col += 3) {
-                        const topFaceX0 = col * (cubieSize + this.spacing);
-                        const topFaceY0 = row * (cubieSize + this.spacing);
-                        const topFaceX1 = topFaceX0 + (cubieSize + this.spacing) * 3 - this.spacing;
-                        const topFaceY1 = topFaceY0 + (cubieSize + this.spacing) * 3 - this.spacing;
-
-                        ctx.strokeRect(topFaceX0, topFaceY0, topFaceX1 - topFaceX0, topFaceY1 - topFaceY0);
-                    }
-                }
-            }
-        }
-    </script>
-</body>
-</html>-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cube Art Generator</title>
+    <title>Bindi Art PDF</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #000; /* Black background for the body */
-            color: #fff; /* White text color for contrast */
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
             text-align: center;
-            margin: 0;
             padding: 20px;
+            margin: 0;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 90%;
             margin: 0 auto;
             padding: 20px;
-            background-color: #333; /* Dark background for the container */
+            background-color: #333;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        h1 {
-            color: #fff; /* White text color for the heading */
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #ddd; /* Light gray color for labels */
-        }
-
-        input[type="number"] {
-            display: block;
-            width: 100%;
+        input[type="number"], button {
+            margin: 10px;
             padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #555; /* Darker border for the input */
+            border: 1px solid #555;
             border-radius: 4px;
-            box-sizing: border-box;
-            background-color: #222; /* Darker background for the input */
-            color: #fff; /* White text color for the input */
+            background-color: #222;
+            color: #fff;
+            font-size: 16px;
         }
 
         button {
             background-color: #007bff;
             color: #fff;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
             cursor: pointer;
-            border-radius: 4px;
             transition: background-color 0.3s;
         }
 
@@ -391,15 +45,23 @@
             background-color: #0056b3;
         }
 
-        canvas {
+        #canvas {
+            border: 2px solid #555;
+            background-color: #222;
             margin-top: 20px;
-            border: 2px solid #fff; /* White border for the canvas */
-            border-radius: 4px;
-            background-color: #222; /* Darker background for the canvas */
+            width: 0%;
+            height: 0%;
         }
 
-        #display_image img {
-            border: 2px solid #fff; /* White border for the image */
+        #output {
+            margin-top: 20px;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
         }
     </style>
 </head>
@@ -407,338 +69,139 @@
     <div class="container">
         <img class="w-100" style="height: auto; max-height: 200px;" src="iitgn_logo.png" alt="IITGN Logo">
         <br><br>
-        <h1>Cube art generator</h1>
-        <center><div id="display_image"></div></center>
+        <h1>Bindi Art</h1>
+        <img id="displayImage" alt="Selected Image">
+        <br><br>
         <br>
-        <label for="cubeAmount">Number of Cubes:</label>
-        <input type="number" id="cubeAmount" value="4">
-        
-        <button id="generateButton">Generate Cube Art</button>
-        <br>
+        Matrix size:<input type="number" id="matrix-size" min="1" max="70" value="10">
+        <button id="process-button">Process Image</button>
+        <button id="see-gif-button" style="display:none;">See GIF</button>
+        <button id="download-pdf-button" style="display:none;">Download PDF</button>
         <canvas id="canvas"></canvas>
-        <br><br>
-        <center><button id="downloadButton" style="display:none;">Download Image</button></center>
-        <br><br>
-        <center><button id="pdfButton" style="display:none;">Download PDF</button></center>
-
+        <div id="output">
+            <div id="matrix" class="matrix"></div>
+        </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        const generateButton = document.getElementById('generateButton');
-        const imageInput = document.getElementById('imageInput');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        imageUrl = localStorage.getItem('finalImageUrl')
+        const imageUrl = localStorage.getItem('finalImageUrl');
         if (imageUrl) {
-            document.getElementById('display_image').innerHTML = 
-                '<img id="image_element" src="'+imageUrl+'"/>';
-        } else {
-            document.getElementById('display_image').innerHTML = 
-                '<p>No image found.</p>';
+            const displayImage = document.getElementById('displayImage');
+            displayImage.src = imageUrl;
         }
-        generateButton.addEventListener('click', () => {
-            const amount = parseInt(document.getElementById('cubeAmount').value);
-
-            const img = new Image();
-            img.src = imageUrl
-
-            img.onload = () => {
-                const cubeArt = new CubeArt(amount, img);
-                cubeArt.animate();
+        document.getElementById('process-button').addEventListener('click', () => {
+            const matrixSize = parseInt(document.getElementById('matrix-size').value);
+            const finalImageUrl = imageUrl;
+            
+            if (!finalImageUrl) {
+                alert('No image found in localStorage. Please make sure the image is stored as finalImageUrl.');
+                return;
             }
+
+            const imgElement = new Image();
+            imgElement.src = finalImageUrl;
+
+            imgElement.onload = function() {
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = matrixSize;
+                canvas.height = matrixSize;
+                ctx.drawImage(imgElement, 0, 0, matrixSize, matrixSize);
+
+                const imageData = ctx.getImageData(0, 0, matrixSize, matrixSize);
+                const data = imageData.data;
+                const pixelValues = [];
+
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    const gray = 0.3 * r + 0.59 * g + 0.11 * b;
+
+                    let mappedValue;
+                    if (gray < 51) {
+                        mappedValue = 5;
+                    } else if (gray < 102) {
+                        mappedValue = 4;
+                    } else if (gray < 153) {
+                        mappedValue = 3;
+                    } else if (gray < 204) {
+                        mappedValue = 2;
+                    } else {
+                        mappedValue = 1;
+                    }
+
+                    pixelValues.push(mappedValue);
+                }
+
+                const matrix = [];
+                for (let row = 0; row < matrixSize; row++) {
+                    matrix.push(pixelValues.slice(row * matrixSize, (row + 1) * matrixSize));
+                }
+
+                console.log('2D Matrix:', matrix);
+
+                localStorage.setItem('matrix', JSON.stringify(matrix));
+                localStorage.setItem('matrixSize', matrixSize);
+
+                document.getElementById('download-pdf-button').style.display = 'inline-block';
+                document.getElementById('see-gif-button').style.display = 'inline-block';
+            };
         });
 
-        function transformArray(grid) {
-            const numRows = grid.length;
-            const numCols = grid[0].length;
-            const blockSize = 3; // Size of the 3x3 blocks
-            const result = [];
+        document.getElementById('download-pdf-button').addEventListener('click', () => {
+            const matrix = JSON.parse(localStorage.getItem('matrix'));
+            const matrixSize = parseInt(localStorage.getItem('matrixSize'));
 
-            for (let r = 0; r < numRows - blockSize + 1; r += blockSize) {
-                for (let c = 0; c < numCols - blockSize + 1; c += blockSize) {
-                    const block = [];
-                    for (let i = 0; i < blockSize; i++) {
-                        block.push(grid[r + i].slice(c, c + blockSize));
-                    }
-                    result.push(block);
-                }
+            if (!matrix || !matrixSize) {
+                alert('No matrix found. Please process the image first.');
+                return;
             }
-            generatePDF(result)
-        }
-        async function generatePDF(result) {
+
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF();
-            const pageWidth = 400;
-            const blockSize = 40;
-            const margin = 0;
+            const doc = new jsPDF();
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
 
-            result.forEach((block, index) => {
-                if (index > 0) {
-                    pdf.addPage();
-                }
+            // Calculate maximum cell size that fits the page
+            const maxCellSize = Math.min(
+                (pageWidth - 20) / matrixSize,
+                (pageHeight - 20) / matrixSize
+            );
 
-                const startX = 50;
-                const startY = 80;
+            const cellSize = maxCellSize; // Use the maximum cell size
 
-                block.forEach((row, rowIndex) => {
-                    row.forEach((cell, colIndex) => {
-                        const x = startX + colIndex * (blockSize + margin);
-                        const y = startY + rowIndex * (blockSize + margin);
-                        const color = getColor(cell);
-                        pdf.setFillColor(color[0], color[1], color[2]);
-                        pdf.rect(x, y, blockSize, blockSize, 'F'); // Fill rectangle
-                        pdf.setDrawColor(0, 0, 0);
-                        pdf.rect(x, y, blockSize, blockSize); // Draw rectangle border
-                    });
-                });
-            });
-            document.getElementById('pdfButton').addEventListener('click', () => {
-               pdf.save('mosaic.pdf')
-            });   
-        }
+            const startX = (pageWidth - (matrixSize * cellSize)) / 2; // Center the grid horizontally
+            const startY = (pageHeight - (matrixSize * cellSize)) / 2; // Center the grid vertically
 
-function getColor(color) {
-    switch (color) {
-        case 'W': return [255, 255, 255]; // White
-        case 'R': return [255, 0, 0]; // White
-        case 'O': return [240, 144, 60]; // White
-        case 'Y': return [248, 254, 84]; // White
-        case 'G': return [103, 221, 67];     // Green
-        case 'B': return [53, 90, 167];     // Blue
-        default: return [128, 128, 128]; // Gray
-    }
-}
+            for (let row = 0; row < matrixSize; row++) {
+                for (let col = 0; col < matrixSize; col++) {
+                    const value = matrix[row][col];
+                    const radius = value * (cellSize / 15); // Adjust the radius multiplier to scale circles
 
-        
-        class CubeArt {
-            constructor(amount, img) {
-                this.amount = amount;
-                this.img = img;
-                this.colours = {
-                    "white": [255, 255, 255],
-                    "yellow": [248, 254, 84],
-                    "red": [203, 42, 29],
-                    "orange": [240, 144, 60],
-                    "blue": [53, 90, 167],
-                    "green": [103, 221, 67],
-                };
-                this.spacing = 2;
-                this.colorAnimationSpeed = 100; // Time in milliseconds between color updates
-            }
-
-            animate() {
-                const { width, height } = this.img;
-                const s = Math.sqrt(this.amount / (width * height));
-                const w2 = Math.floor(width * s);
-                const h2 = Math.floor(height * s);
-                const cubieDim = { width: w2 * 3, height: h2 * 3 };
-                const cubieSize = Math.min(width / cubieDim.width, height / cubieDim.height);
-
-                canvas.width = width + (this.spacing * (cubieDim.width - 1));
-                canvas.height = height + (this.spacing * (cubieDim.height - 1));
-
-                ctx.drawImage(this.img, 0, 0, width, height);
-                const imgData = ctx.getImageData(0, 0, width, height);
-                const brightnessValues = this.getBrightnessValues(imgData, cubieDim, cubieSize);
-
-                const cText = this.setColours(brightnessValues);
-                this.drawRandomColors(cubieDim, cubieSize);
-
-                // Start the animation
-                this.animateTransition(cText, cubieDim, cubieSize);
-            }
-
-            getBrightnessValues(imgData, cubieDim, cubieSize) {
-                const brightVals = [];
-                let minBright = 255;
-                let maxBright = 0;
-
-                for (let j = 0; j < cubieDim.height; j++) {
-                    const row = [];
-                    for (let i = 0; i < cubieDim.width; i++) {
-                        const x = Math.min(Math.floor(i * cubieSize), imgData.width - 1);
-                        const y = Math.min(Math.floor(j * cubieSize), imgData.height - 1);
-                        const index = (y * imgData.width + x) * 4;
-                        const r = imgData.data[index];
-                        const g = imgData.data[index + 1];
-                        const b = imgData.data[index + 2];
-                        const brightness = (r * 0.21) + (g * 0.71) + (b * 0.08);
-
-                        if (brightness < minBright) minBright = brightness;
-                        if (brightness > maxBright) maxBright = brightness;
-
-                        row.push(brightness);
-                    }
-                    brightVals.push(row);
-                }
-                this.minBright = minBright;
-                this.maxBright = maxBright;
-                return brightVals;
-            }
-
-            setColours(brightVals) {
-                const cText = [];
-                const segSize = (this.maxBright - this.minBright) / 6;
-
-                for (let j = 0; j < brightVals.length; j++) {
-                    const row = [];
-                    for (let i = 0; i < brightVals[j].length; i++) {
-                        const b = brightVals[j][i];
-                        let val;
-                        if (b <= segSize) val = "B";
-                        else if (b > segSize && b <= segSize * 2) val = "G";
-                        else if (b > segSize * 2 && b <= segSize * 3) val = "R";
-                        else if (b > segSize * 3 && b <= segSize * 4) val = "O";
-                        else if (b > segSize * 4 && b <= segSize * 5) val = "Y";
-                        else val = "W";
-                        row.push(val);
-                    }
-                    cText.push(row);
-                }
-                console.log(cText)
-                transformArray(cText);
-                return cText;
-            }
-
-
-            drawRandomColors(cubieDim, cubieSize) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                for (let j = 0; j < cubieDim.height; j++) {
-                    for (let i = 0; i < cubieDim.width; i++) {
-                        const x0 = i * (cubieSize + this.spacing);
-                        const y0 = j * (cubieSize + this.spacing);
-                        const x1 = x0 + cubieSize;
-                        const y1 = y0 + cubieSize;
-
-                        const randomColor = this.getRandomColor();
-                        ctx.fillStyle = `rgb(${randomColor[0]}, ${randomColor[1]}, ${randomColor[2]})`;
-                        ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-                    }
-                }
-
-                ctx.strokeStyle = 'white'; /* Change border color to white */
-                ctx.lineWidth = 0;
-
-                for (let row = 0; row < cubieDim.height; row += 3) {
-                    for (let col = 0; col < cubieDim.width; col += 3) {
-                        const topFaceX0 = col * (cubieSize + this.spacing);
-                        const topFaceY0 = row * (cubieSize + this.spacing);
-                        const topFaceX1 = topFaceX0 + (cubieSize + this.spacing) * 3;
-                        const topFaceY1 = topFaceY0 + (cubieSize + this.spacing) * 3;
-
-                        ctx.strokeRect(topFaceX0, topFaceY0, topFaceX1 - topFaceX0, topFaceY1 - topFaceY0);
-                    }
-                }
-            }
-
-            getRandomColor() {
-                const colors = Object.values(this.colours);
-                return colors[Math.floor(Math.random() * colors.length)];
-            }
-
-            animateTransition(cText, cubieDim, cubieSize) {
-                const startTime = performance.now();
-                const duration = 10000; // Duration of the animation in milliseconds (10 seconds)
-                const totalRows = cubieDim.height;
-                let lastColorUpdate = startTime;
-
-                const step = (currentTime) => {
-                    const elapsedTime = currentTime - startTime;
-                    const progress = Math.min(elapsedTime / duration, 1);
-                    const visibleRows = Math.ceil(progress * totalRows);
-
-                    // Draw the background with random colors, updating at the specified speed
-                    if (currentTime - lastColorUpdate > this.colorAnimationSpeed) {
-                        this.drawRandomColors(cubieDim, cubieSize);
-                        lastColorUpdate = currentTime;
-                    }
-
-                    // Reveal correct colors for the visible rows
-                    for (let row = 0; row < visibleRows; row++) {
-                        for (let col = 0; col < cubieDim.width; col++) {
-                            const x0 = col * (cubieSize + this.spacing);
-                            const y0 = row * (cubieSize + this.spacing);
-                            const x1 = x0 + cubieSize;
-                            const y1 = y0 + cubieSize;
-
-                            const color = this.getColor(cText[row][col]);
-                            ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-                            ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-                        }
-                    }
-
-                    if (progress < 1) {
-                        requestAnimationFrame(step);
+                    const centerX = startX + col * cellSize + cellSize / 2;
+                    const centerY = startY + row * cellSize + cellSize / 2;
+                    doc.setDrawColor('red');
+                    doc.setFillColor('red');
+                    // Draw the circle based on the value
+                    if (value === 1) {
+                        // Draw a small dot
+                        doc.circle(centerX, centerY, 0.7, 'F'); // Filled small circle
                     } else {
-                        // Final draw to ensure last state is rendered
-                        this.drawFinal(cText, cubieDim, cubieSize);
+                        // Draw a circle with only border
+                        doc.circle(centerX, centerY, radius);
                     }
-                };
-
-                requestAnimationFrame(step);
-            }
-
-            getColor(char) {
-                switch (char) {
-                    case "W": return this.colours["white"];
-                    case "Y": return this.colours["yellow"];
-                    case "O": return this.colours["orange"];
-                    case "R": return this.colours["red"];
-                    case "G": return this.colours["green"];
-                    default: return this.colours["blue"];
                 }
             }
 
-            drawFinal(cText, cubieDim, cubieSize) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                for (let j = 0; j < cText.length; j++) {
-                    for (let i = 0; i < cText[j].length; i++) {
-                        const x0 = i * (cubieSize + this.spacing);
-                        const y0 = j * (cubieSize + this.spacing);
-                        const x1 = x0 + cubieSize;
-                        const y1 = y0 + cubieSize;
-
-                        const color = this.getColor(cText[j][i]);
-                        ctx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
-                        ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-                    }
-                }
-
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 0;
-
-                for (let row = 0; row < cubieDim.height; row += 3) {
-                    for (let col = 0; col < cubieDim.width; col += 3) {
-                        const topFaceX0 = col * (cubieSize + this.spacing);
-                        const topFaceY0 = row * (cubieSize + this.spacing);
-                        const topFaceX1 = topFaceX0 + (cubieSize + this.spacing) * 3 - this.spacing;
-                        const topFaceY1 = topFaceY0 + (cubieSize + this.spacing) * 3 - this.spacing;
-
-                        ctx.strokeRect(topFaceX0, topFaceY0, topFaceX1 - topFaceX0, topFaceY1 - topFaceY0);
-                    }
-                }
-
-                // Make the download button visible after the animation completes
-                const downloadButton = document.getElementById('downloadButton');
-                downloadButton.style.display = 'block';
-
-                const pdfButton = document.getElementById('pdfButton');
-                pdfButton.style.display = 'block';
-
-                // Attach download functionality to the button
-                downloadButton.addEventListener('click', () => {
-                    const image = canvas.toDataURL('image/png');
-                    const link = document.createElement('a');
-                    link.href = image;
-                    link.download = 'cube_art.png';
-                    link.click();
-                });
-
-                
-            }
-        }
+            doc.save('bindi_art.pdf');
+        });
+        document.getElementById('see-gif-button').addEventListener('click', () => {
+            // Navigate to bindi_animation.html page
+            window.location.href = 'bindi_animation.html';
+        });
     </script>
 </body>
 </html>
+
