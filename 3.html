@@ -1,189 +1,189 @@
 <!DOCTYPE html>
-  <html lang="en">
-  <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Dice Mosaic Generator</title>
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-      <style>
-          body {
-              font-family: Arial, sans-serif;
-              text-align: center;
-              padding: 20px;
-              background-color: #121212;
-              color: #e0e0e0;
-          }
-          .container {
-              max-width: 1000px;
-              margin: auto;
-              padding: 20px;
-              background: #1e1e1e;
-              border-radius: 8px;
-              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-              overflow: hidden;
-          }
-          input[type="range"] {
-              width: 100%;
-              margin: 10px 0;
-              accent-color: #007bff;
-          }
-          #matrixSizeValue {
-              font-weight: bold;
-          }
-          canvas {
-              border: 1px solid #333;
-              margin-top: 20px;
-              display: block;
-              margin-left: auto;
-              margin-right: auto;
-              max-width: 100%;
-              height: auto;
-              background: #2c2c2c;
-          }
-          button {
-              background-color: #007bff;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              padding: 10px 20px;
-              font-size: 16px;
-              cursor: pointer;
-              margin: 10px;
-          }
-          button:hover {
-              background-color: #0056b3;
-          }
-          button:focus {
-              outline: none;
-          }
-          #displayImage {
-              border: 1px solid #333;
-              margin-top: 20px;
-              max-width: 100%;
-              height: auto;
-          }
-      </style>
-  </head>
-  <body>
-      <div class="container">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Mosaic Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 20px;
+            background: #1e1e1e;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+            accent-color: #007bff;
+        }
+        #matrixSizeValue {
+            font-weight: bold;
+        }
+        #displayImage {
+            border: 1px solid #333;
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:focus {
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
         <img class="w-100" style="height: auto; max-height: 200px;" src="iitgn_logo.png" alt="IITGN Logo">
         <br><br>
-          <h1>One sided dice Mosaic Generator</h1>
-          <br>
-          <div>
-              <label for="matrixSize">Select matrix size:</label>
-              <input type="range" id="matrixSize" min="10" max="100" value="10">
-              <span id="matrixSizeValue">10</span>
-              <br>
-              <img id="displayImage" alt="Selected Image">
-          </div>
-          <button id="generateButton">Generate</button>
-          <button id="downloadButton" style="display: none;">Download PDF</button>
-          <button id="seeGifButton" style="display: none;">See Gif</button>
-      </div>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  
-      <script>
-          const { jsPDF } = window.jspdf;
-  
-          function updateMatrixSize() {
-              document.getElementById('matrixSizeValue').textContent = document.getElementById('matrixSize').value;
-          }
-  
-          document.getElementById('matrixSize').addEventListener('input', updateMatrixSize);
-          updateMatrixSize();
-  
-          // Retrieve image from localStorage
-          const imageUrl = localStorage.getItem('finalImageUrl');
-          if (imageUrl) {
-              const displayImage = document.getElementById('displayImage');
-              displayImage.src = imageUrl;
-          }
-  
-          let generatedPdf = null;
-          let diceValues = [];
-          let matrixSize = 10;
-  
-          async function generatePDF(matrixSize) {
-              if (!imageUrl) {
-                  alert('No image found in local storage.');
-                  return;
-              }
-  
-              const img = new Image();
-              img.src = imageUrl;
-  
-              img.onload = () => {
-                  const canvas = document.createElement('canvas');
-                  const ctx = canvas.getContext('2d');
-                  canvas.width = matrixSize;
-                  canvas.height = matrixSize;
-                  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  
-                  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                  const data = imgData.data;
-  
-                  diceValues = [];
-                  for (let i = 0; i < data.length; i += 4) {
-                      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                      let dieIndex;
-                      if (avg < 42) dieIndex = 0;
-                      else if (avg < 84) dieIndex = 1;
-                      else if (avg < 126) dieIndex = 2;
-                      else if (avg < 168) dieIndex = 3;
-                      else if (avg < 210) dieIndex = 4;
-                      else dieIndex = 5;
-  
-                      diceValues.push(dieIndex + 1);
-                  }
-                  let textGrid = '';
-                  for (let i = 0; i < diceValues.length; i++) {
-                      textGrid += diceValues[i] + ' ';
-                      if ((i + 1) % matrixSize === 0) textGrid += '\n';
-                  }
-  
-                  generatedPdf = new jsPDF();
-                  const lines = textGrid.split('\n');
-                  let y = 10;
-                  let pageHeight = generatedPdf.internal.pageSize.height;
-  
-                  lines.forEach(line => {
-                      if (y + 10 > pageHeight) {
-                          generatedPdf.addPage();
-                          y = 10;
-                      }
-                      generatedPdf.text(line, 10, y);
-                      y += 10;
-                  });
-  
-                  document.getElementById('downloadButton').style.display = 'inline-block';
-                  document.getElementById('seeGifButton').style.display = 'inline-block';
-              };
-          }
-  
-          document.getElementById('generateButton').addEventListener('click', async () => {
-              matrixSize = parseInt(document.getElementById('matrixSize').value);
-              await generatePDF(matrixSize);
-          });
-  
-          document.getElementById('downloadButton').addEventListener('click', () => {
-              if (generatedPdf) {
-                  generatedPdf.save('dice_mosaic.pdf');
-              } else {
-                  alert('Please generate the PDF first.');
-              }
-          });
-  
-          document.getElementById('seeGifButton').addEventListener('click', () => {
-              if (diceValues.length > 0 && matrixSize > 0) {
-                  localStorage.setItem('Face_values', JSON.stringify(diceValues));
-                  localStorage.setItem('Matrix_size', matrixSize);
-                  window.location.href = 'Dice_animation.html';
-              } else {
-                  alert('Please generate the PDF first.');
-              }
-          });
-      </script>
-  </body>
-  </html>
-  
+        <h1>One sided dice Mosaic Generator</h1>
+        <br>
+        <div>
+            <label for="matrixSize">Select matrix size:</label>
+            <input type="range" id="matrixSize" min="10" max="100" value="10">
+            <span id="matrixSizeValue">10</span>
+            <br>
+            <img id="displayImage" alt="Selected Image">
+        </div>
+        <button id="generateButton">Generate</button>
+        <button id="downloadButton" style="display: none;">Download PDF</button>
+        <button id="seeGifButton" style="display: none;">See Gif</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        function updateMatrixSize() {
+            document.getElementById('matrixSizeValue').textContent = document.getElementById('matrixSize').value;
+        }
+
+        document.getElementById('matrixSize').addEventListener('input', updateMatrixSize);
+        updateMatrixSize();
+
+        // Retrieve image from localStorage
+        const imageUrl = localStorage.getItem('finalImageUrl');
+        if (imageUrl) {
+            const displayImage = document.getElementById('displayImage');
+            displayImage.src = imageUrl;
+        }
+
+        let generatedPdf = null;
+        let diceValues = [];
+        let matrixSize = 10;
+
+        async function generatePDF(matrixSize) {
+            if (!imageUrl) {
+                alert('No image found in local storage.');
+                return;
+            }
+
+            const img = new Image();
+            img.src = imageUrl;
+
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = matrixSize;
+                canvas.height = matrixSize;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imgData.data;
+
+                diceValues = [];
+                for (let i = 0; i < data.length; i += 4) {
+                    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                    let dieIndex;
+                    if (avg < 42) dieIndex = 0;
+                    else if (avg < 84) dieIndex = 1;
+                    else if (avg < 126) dieIndex = 2;
+                    else if (avg < 168) dieIndex = 3;
+                    else if (avg < 210) dieIndex = 4;
+                    else dieIndex = 5;
+
+                    diceValues.push(dieIndex + 1);
+                }
+
+                generatedPdf = new jsPDF();
+                let pageCount = 0;
+                for (let row = 0; row < matrixSize; row++) {
+                    const startIndex = row * matrixSize;
+                    const endIndex = startIndex + matrixSize;
+                    const rowValues = diceValues.slice(startIndex, endIndex);
+
+                    // Add new page
+                    if (pageCount > 0) {
+                        generatedPdf.addPage();
+                    }
+                    pageCount++;
+
+                    generatedPdf.setFontSize(12);
+                    generatedPdf.text(`Values of Row ${row + 1}`, 10, 10);
+
+                    let y = 20;
+                    let line = '';
+                    rowValues.forEach((value, index) => {
+                        line += value + ' ';
+                        if ((index + 1) % 50 === 0) {
+                            generatedPdf.text(line, 10, y);
+                            line = '';
+                            y += 10;
+                        }
+                    });
+                    if (line.length > 0) {
+                        generatedPdf.text(line, 10, y);
+                    }
+                }
+
+                document.getElementById('downloadButton').style.display = 'inline-block';
+                document.getElementById('seeGifButton').style.display = 'inline-block';
+            };
+        }
+
+        document.getElementById('generateButton').addEventListener('click', async () => {
+            matrixSize = parseInt(document.getElementById('matrixSize').value);
+            await generatePDF(matrixSize);
+        });
+
+        document.getElementById('downloadButton').addEventListener('click', () => {
+            if (generatedPdf) {
+                generatedPdf.save('dice_mosaic.pdf');
+            } else {
+                alert('Please generate the PDF first.');
+            }
+        });
+
+        document.getElementById('seeGifButton').addEventListener('click', () => {
+            if (diceValues.length > 0 && matrixSize > 0) {
+                localStorage.setItem('Face_values', JSON.stringify(diceValues));
+                localStorage.setItem('Matrix_size', matrixSize);
+                window.location.href = 'Dice_animation.html';
+            } else {
+                alert('Please generate the PDF first.');
+            }
+        });
+    </script>
+</body>
+</html>
