@@ -97,7 +97,6 @@
         <center>
             <div id="display_image"></div>
         </center>
-        <input type="number" id="totalPins" placeholder="Enter approx total number of sticky notes" min="1" value="100">
         <button id="generateButton">Generate Image</button>
         <center>
             <div id="resultText"></div>
@@ -304,7 +303,7 @@
 
 
         document.getElementById('generateButton').addEventListener('click', function () {
-            const totalPins = parseInt(document.getElementById('totalPins').value, 10);
+            const totalPins = 20000;
             if (isNaN(totalPins) || totalPins < 1) {
                 alert('Please enter a valid number of sticky notes.');
                 return;
