@@ -5,33 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dice Mosaic Animation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body, html {
+            zoom: 100%;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas {
+            margin-top: 0px;
+            position: absolute;
+        }
+    </style>
 </head>
-<style>
-    body, html {
-        zoom:100%;
-        background-color: black;
-        /* margin: 0; */
-        /* padding: 0; */
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        height: 100vh;   
-        overflow: hidden;
-    }
-
-    #canvas-container {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        width: 100%;
-        height: 100%;
-    }
-
-    canvas {
-        margin-top: 0px;
-        position: absolute;
-    }
-</style>
 <body>
     <div id="canvas-container"></div>
     <script>
@@ -39,14 +37,15 @@
         let matrixSize = 10;
         let rotationX = [];
         let rotationY = [];
-        let rotationSpeed = 0.5;
+        let rotationSpeed = 0.02; // Reduced speed for smoother animation
         let rowIndex = 0;
         let rowAnimationDelay = 10; // Delay in frames between each row animation
         let animationStep = 0;
+        let totalFrames = 100; // Total frames for each row to complete animation
 
         function setup() {
             matrixSize = parseInt(localStorage.getItem('Matrix_size')) || 10;
-            diceValues = JSON.parse(localStorage.getItem('Face_values')) || [];
+            diceValues = JSON.parse(localStorage.getItem('Face_values')) || Array.from({ length: matrixSize * matrixSize }, () => Math.floor(Math.random() * 6) + 1);
 
             let canvasSize = matrixSize * 100;
             let canvas = createCanvas(canvasSize, canvasSize, WEBGL);
@@ -60,19 +59,19 @@
                 rotationX[i] = [];
                 rotationY[i] = [];
                 for (let j = 0; j < matrixSize; j++) {
-                    rotationX[i][j] = random(TWO_PI);
-                    rotationY[i][j] = random(TWO_PI);
+                    // Initialize dice to show the top face only
+                    rotationX[i][j] = faceToAngleX(1); // Start with face 1 (top view)
+                    rotationY[i][j] = faceToAngleY(1); // Start with face 1 (top view)
                 }
             }
         }
 
         function draw() {
-            background(255);
+            background(0);
             directionalLight(250, 250, 250, 0, 0, -1);
             ambientLight(150);
-            matrixSize = parseInt(localStorage.getItem('Matrix_size')) || 10;
-            let spacing = 50;
-            let startPosition = -23 *matrixSize ;
+            let spacing = 70; // Adjust spacing to fit the canvas
+            let startPosition = -matrixSize * spacing / 2;
 
             for (let i = 0; i < matrixSize; i++) {
                 for (let j = 0; j < matrixSize; j++) {
@@ -81,7 +80,6 @@
                     if (j <= rowIndex) {
                         rotateDice(i, j);
                     } else {
-                        // Keep dice in place before row animation
                         rotateY(rotationY[i][j]);
                         rotateX(rotationX[i][j]);
                     }
@@ -105,6 +103,8 @@
             let targetX = faceToAngleX(face);
             let targetY = faceToAngleY(face);
 
+            let framesPerRow = totalFrames;
+            let progress = (frameCount % framesPerRow) / framesPerRow;
             rotationX[i][j] = lerp(rotationX[i][j], targetX, rotationSpeed);
             rotationY[i][j] = lerp(rotationY[i][j], targetY, rotationSpeed);
             rotateY(rotationY[i][j]);
@@ -134,26 +134,23 @@
         }
 
         function drawDie() {
-            // Draw the border
-            stroke(255); // Set the stroke color to white
-            strokeWeight(1); // Set the stroke weight (thickness)
-            noFill(); // No fill color for the border
-            box(52); // Slightly larger box to create the border effect
+            stroke(255);
+            strokeWeight(1);
+            noFill();
+            box(52);
 
-            // Draw the dice body
-            fill(0); // Set the fill color to black
-            noStroke(); // No stroke for the dice body itself
-            box(50); // Draw the actual dice
+            fill(0);
+            noStroke();
+            box(50);
 
-            // Draw the dots on the dice faces
-            fill(255); // Set the fill color to white for the dots
-            noStroke(); // No stroke for the dots
-            drawFace(0, -25, 0, 6); // top face
-            drawFace(25, 0, 0, 2);  // right face
-            drawFace(-25, 0, 0, 4); // left face
-            drawFace(0, 25, 0, 1);  // front face
-            drawFace(0, 0, 25, 3);  // back face
-            drawFace(0, 0, -25, 5); // bottom face
+            fill(255);
+            noStroke();
+            drawFace(0, -25, 0, 6);
+            drawFace(25, 0, 0, 2);
+            drawFace(-25, 0, 0, 4);
+            drawFace(0, 25, 0, 1);
+            drawFace(0, 0, 25, 3);
+            drawFace(0, 0, -25, 5);
         }
 
         function drawFace(x, y, z, face) {
@@ -162,9 +159,7 @@
             if (x != 0) rotateY(HALF_PI);
             if (y != 0) rotateX(HALF_PI);
             switch (face) {
-                case 1:
-                    drawDot(0, 0);
-                    break;
+                case 1: drawDot(0, 0); break;
                 case 2:
                     drawDot(-15, -15);
                     drawDot(15, 15);
