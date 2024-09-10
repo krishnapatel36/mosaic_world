@@ -22,9 +22,26 @@
              color: #fff;
          }
  
-         #my_camera, #results img {
+         #camera_section {
+             position: relative;
+             display: inline-block;
+         }
+ 
+         #my_camera {
+             width: 400px;
+             height: 400px;
              border: 1px solid #fff;
              margin-top: 10px;
+         }
+ 
+         #bounding_box {
+             position: absolute;
+             border: 3px dashed red;
+             width: 200px;
+             height: 200px;
+             left: 100px; /* Centers the box horizontally */
+             top: 100px; /* Centers the box vertically */
+             z-index: 2;
          }
  
          button, select {
@@ -78,15 +95,25 @@
  <body>
      <img class="w-100" style="height: auto; max-height: 200px;" src="iitgn_logo.png" alt="IITGN Logo">
      <br>
-     <!-- Container for Responsive Layout -->
      <div class="container">
-         <p>Capture your image and go ahead</p>
-         <div id="my_camera" style="width: 100%; max-width: 400px; height: auto; margin: 0 auto;"></div>
-         
-         <!-- Capture Button -->
-         <button onclick="take_snapshot()">Take Snapshot</button>
-         
-         <!-- Option Selector and Redirect Button -->
+         <p>Position your face inside the red box and capture your image for the mosaic</p>
+ 
+         <!-- Webcam Section with Bounding Box -->
+         <div id="camera_section">
+             <div id="my_camera"></div>
+             <div id="bounding_box"></div>
+         </div>
+         <br>
+         <!-- Button to capture image from webcam -->
+         <center>
+             <button onclick="take_snapshot()">Take Snapshot</button>
+         </center>
+         <br>
+         <!-- File input for uploading image -->
+         <center>
+             <input type="file" id="file_input" accept="image/*" onchange="handleFileSelect(event)">
+         </center>
+         <br>
          <div>
              <select id="page_selector">
                  <option value="1">Sticky Notes mosaic</option>
@@ -99,17 +126,14 @@
          </div>
          <br>
          
-         <!-- Captured Image Display -->
          <div id="results"></div>
-         <center><h1>Captured image</h1></center>
-         <!-- Processed Image Display (Hidden) -->
+         <center><h1>Captured or Uploaded Image</h1></center>
          <img id="outputImage" alt="Processed Image">
      </div>
      
-     <!-- Include Webcam.js Library -->
      <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js"></script>
      <script>
-         const API_KEY = 'RqopimcmyEfBZGkyHK9xR9YF'; // Replace with your API key for background removal
+         const API_KEY = 'UYjC6GZBiCKthwSm89n8eQwe'; // Replace with your API key for background removal
  
          // Configure the webcam
          Webcam.set({
@@ -131,7 +155,20 @@
              });
          }
  
-         // Function to process the captured image
+         // Function to handle file selection
+         function handleFileSelect(event) {
+             const file = event.target.files[0];
+             if (file) {
+                 const reader = new FileReader();
+                 reader.onload = function(e) {
+                     document.getElementById('results').innerHTML = 
+                         '<img id="captured_image" src="'+e.target.result+'"/>';
+                 };
+                 reader.readAsDataURL(file);
+             }
+         }
+ 
+         // Function to process the captured or uploaded image
          function processImage() {
              const image = document.getElementById('captured_image').src;
              removeBackgroundAndAddBlackBackground(image);
@@ -225,3 +262,4 @@
      </script>   
  </body>
  </html>
+ 
